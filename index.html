@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Strange Loops</title>
+    <script src="js/lodash.min.js"></script>
+    <script src="js/cytoscape.min.js"></script>
+    <script src="js/cytoscape-domnode.js"></script>
+    <script src="js/cytoscape-edgehandles.js"></script>
+    <script src="js/example-graph.js"></script>
+    <link href="style.css" rel="stylesheet"/>
+</head>
+<body>
+    <section class="workspace">
+        <aside class="side-panel">
+            <img src="img/title-icon.png"/>
+            <div class="tooltip-parent">
+                <span><u><i>What is this?</i></u></span>
+                <div class="tooltip">
+                    <p>A design tool for simulating and exploring game progression and choices.</p>
+                    <p>It's an interactive hybrid of a <a href="https://en.wikipedia.org/wiki/Finite-state_machine">State Machine</a> and a <a href="https://en.wikipedia.org/wiki/Markov_chain">Markov Chain</a>.</p>
+                    <h4>Controls</h4>
+                    <ul>
+                        <li><b>Double click the graph:</b> create new state node.</li>
+                        <li><b>Double click an edge:</b> create an edge route.</li>
+                        <li><b>Alt + drag from node to node:</b> create a directed edge between nodes.</li>
+                        <li><b>Shift + Drag:</b> Select area.</li>
+                        <li><b>Hold Shift:</b> allows you to activate any state node.</li>
+                        <li><b>D:</b> duplicate selection.</li>
+                        <li><b>G:</b> group selection.</li>
+                        <li><b>A:</b> toggle auto-progression for selected node.</li>
+                        <li><b>F:</b> focus viewport on activated node.</li>
+                        <li><b>Del:</b> delete selection.</li>
+                    </ul>
+                    <p><i>Created by <a href="https://locogame.co.uk">Luke Perkin</a></i></p>
+                </div>
+            </div>
+            <dl id="side-panel-noselection" class="side-panel-variant">
+                <div>Select a node</div>
+            </dl>
+            <dl id="side-panel-node-details" class="side-panel-variant">
+                <div>
+                    <dt>ID</dt>
+                    <dd id="side-panel-id" class="small"></dd>
+                </div>
+                <div>
+                    <dt>Title</dt>
+                    <input id="side-panel-title" type="text"></input>
+                </div>
+                <div>
+                    <dt>Description</dt>
+                    <textarea id="side-panel-description" type="text"></textarea>
+                </div>
+                <div>
+                    <dt>Colour</dt>
+                    <select id="side-panel-node-color" type="text">
+                        <option value="white">White</option>
+                        <option value="blue">Blue</option>
+                        <option value="violet">Violet</option>
+                        <option value="green">Green</option>
+                        <option value="red">Red</option>
+                        <option value="gold">Gold</option>
+                    </select>
+                </div>
+                <div>
+                    <dt>Script</dt>
+                    <textarea id="side-panel-script1" type="text" spellcheck="false"></textarea>
+                    <div class="tooltip-parent">
+                        <span><u><i>How do scripts work?</i></u></span>
+                        <div class="tooltip">
+                            <p>A state node's script is evaluated when that node is activated. You can use them for keeping track of state changes, 
+                                for example increasing the player's currency: <code>g.money += 100</code>.
+                                Variables will be shown either in the side panel or on the node, but you can hide specific variables by naming them
+                                with an underscore at the start: <code>g._hiddenNumber = 42</code>
+                            </p>
+                            
+                            <p>The script is just Javascript, but you have some pre-defined variables for you to use:</p>
+                            <ul>
+                                <li><code>g.</code> a global namepsace that any state node can access.</li>
+                                <li><code>self.</code> a local namespace that only the activating node can access.</li>
+                                <li><code>self._visits</code> how many times this state has been visited.</li>
+                                <li><code>self._id</code> the ID of this node.</li>
+                                <li><code>threadId</code> thread id of "thread" running this script.</li>
+                            </ul>
+                            <p>There are also some helper functions:</p>
+                            <ul>
+                                <li><code>random()</code> generates a random number from 0 up to 1.</li>
+                                <li><code>min(a, b)</code> picks the lowest of a or b.</li>
+                                <li><code>max(a, b)</code> picks the highest of a or b.</li>
+                                <li><code>log(message)</code> displays the message in the side bar for 5s.</li>
+                                <li><code>runNode(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>
+                                <li><code>runThread(threadId)</code> advances a 'thread', as if you had pressed the 🎲 button.</li>
+                                <li><code>stopThread(threadId)</code> kills a 'thread'.</li>
+                                <li><code>changeThreadId(threadId, newId)</code> changes a 'thread' id to a new arbitrary string of your choice.</li>
+                            </ul>
+                            <p><i>Note that threads aren't like actual OS threads, they're just a term I use to indicate one player's movement across the graph.</i></p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <dt>auto-progress</dt>
+                    <input id="side-panel-autoprogress" type="checkbox"></input>
+                </div>
+                <div>
+                    <dt>visits</dt>
+                    <code id="side-panel-node-visits">0</code>
+                </div>
+            </dl>
+            <dl id="side-panel-edge-details" class="side-panel-variant">
+                <div>
+                <div>     
+                    <dt>ID</dt>
+                    <dd id="side-panel-edge-id" class="small"></dd>
+                </div>
+                <div>
+                    <dt>Label</dt>
+                    <input id="side-panel-edge-label" type="text"></input>
+                </div>
+                <div>
+                    <dt>Weight</dt>
+                    <input id="side-panel-edge-weight" type="number"></input>
+                    <div class="tooltip-parent">
+                        <span><u><i>How do weights work?</i></u></span>
+                        <div class="tooltip">
+                            <p>Weights typically indicate the likelyhood of that edge being travelled across, when you press the 🎲 button on a node it will travel across a random connected edge but 
+                                higher weight edges will be more likely to be picked.
+                            </p>
+                            <p>You can disable travel across an edge entirely by setting the weight to zero.</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <dt>Weight Script</dt>
+                    <textarea id="side-panel-edge-weight-script" type="text"></textarea>
+                    <div class="tooltip-parent">
+                        <span><u><i>How do edge scripts work?</i></u></span>
+                        <div class="tooltip">
+                            <p>Edge scripts are evaluated whenever a connected state node is activated. When run they update the weight of the edge.</p>
+                            <p>The script either needs to evaluate to a number, i.e. <code>3 * 2</code> or evaluate to a true or false value, i.e. <code>g.playerHasGun</code></p>
+                            <p>Like state nodes, edge scripts have access to the global namespace <code>g.</code>, but you also access to some more:</p>
+                            <ul>
+                                <li><code>from.</code> the state node this edge is going from.</li>
+                                <li><code>to.</code> the state node this edge is going to.</li>
+                                <li><code>self.</code> the edge this weight script is attached to.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </dl>
+            <dl id="side-panel-group-details" class="side-panel-variant">
+                <div>
+                <div>     
+                    <dt>ID</dt>
+                    <dd id="side-panel-group-id" class="small"></dd>
+                </div>
+                <div>
+                    <dt>Label</dt>
+                    <input id="side-panel-group-label" type="text"></input>
+                </div>
+                <div>
+                    <dt>Background Color</dt>
+                    <input id="side-panel-group-color" type="color"></input>
+                </div>
+            </dl>
+            
+
+            <dl id="side-panel-global">
+                <div id="side-panel-info-message" class="info-message" hidden="true"></div>
+                <div id="side-panel-error-message" class="error-message" hidden="true"></div>
+                <dl id="side-panel-data">
+                    <div>
+                        <dt>Variables</dt>
+                        <span id="side-panel-data-output"></span>
+                    </div>
+                </dl>
+                <div>
+                    <dt>Actions</dt>
+                    <div id="side-panel-buttons">
+                        <button data-action="reset-variables">Reset all variables</button>
+                        <button data-action="save">Save</button>
+                        <button data-action="load">Load</button>
+                        <button data-action="export-clipboard">Export to clipboard</button>
+                        <button data-action="import-clipboard">Import from clipboard</button>
+                        <button data-action="clear-graph">Clear Graph</button>
+                    </div>
+                </div>
+                <div>
+                    <dt>Auto Progress Seconds Interval</dd>
+                    <input type="number" id="side-panel-global-autoprogress-seconds"></input>
+                    <dt>Autosave Seconds Interval</dd>
+                    <input type="number" id="side-panel-global-autosave-seconds"></input>
+                    <dt>Run all weight scripts after activation</dd><br/>
+                    <input type="checkbox" id="side-panel-global-run-all-weightscripts" value="false"></input>
+                </div>
+            </dl>
+            
+        </aside>
+        <div class="graph-stage">
+            <div id="cy"></div>
+            <div id="dom-layer" class="dom-layer"></div>
+        </div>
+    </section>
+    <script src="js/main.js"></script>
+</body>
+</html>
