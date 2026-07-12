@@ -274,7 +274,7 @@ function activateNode(node, runInstanceId) {
         runUserScript(node.data().activateScript, currentRunInstance, userGlobalEnvProxy, runningNodeUserdataProxy);
         node.scratch('_domUpdaters').updateData(node);
         document.getElementById("side-panel-data-output").innerHTML = renderDataToHtml(userGlobalEnv);
-        if (transientState.sidePanelTarget === node) {
+        if (transientState.sidePanelTarget && transientState.sidePanelTarget.id() === node.id()) {
             document.getElementById("side-panel-node-visits").innerText = node.data().userEnv._visits;
         }
     }
