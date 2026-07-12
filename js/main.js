@@ -1133,7 +1133,9 @@ bindSidePanelElement("side-panel-autoprogress", "change", {
 });
 bindSidePanelElement("side-panel-node-visits", null, {
     updateElement(element, node) {
-        element.innerText = node.data().userEnv._visits ?? 0;
+        if (node.data().userEnv) {
+            element.innerText = node.data().userEnv._visits ?? 0;
+        }
     }
 });
 
