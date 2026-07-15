@@ -35,6 +35,14 @@
                 </div>
             </div>
             <dl id="side-panel-noselection" class="side-panel-variant">
+                <div>
+                    <dt>Title</dt>
+                    <input id="side-panel-graph-title" type="text"></input>
+                </div>
+                <div>
+                    <dt>Description</dt>
+                    <textarea id="side-panel-graph-description" type="text" class="tall description"></textarea>
+                </div>
                 <div><i>Select a node or edge</i></div>
             </dl>
             <dl id="side-panel-node-details" class="side-panel-variant">
@@ -48,7 +56,7 @@
                 </div>
                 <div>
                     <dt>Description</dt>
-                    <textarea id="side-panel-description" type="text"></textarea>
+                    <textarea id="side-panel-description" type="text" class="description"></textarea>
                 </div>
                 
                 <div>
@@ -77,13 +85,14 @@
                                 <li><code>min(a, b)</code> picks the lowest of a or b.</li>
                                 <li><code>max(a, b)</code> picks the highest of a or b.</li>
                                 <li><code>log(message)</code> displays the message in the side bar for 5s.</li>
-                                <li><code>node.run(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>
+                                <li><code>node.run(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>untitled
                                 <li><code>node.set(idOrTitle, variableName, value)</code> sets a variable on another state node.</li>
                                 <li><code>node.get(idOrTitle)</code> gets another state node's data.</li>
                                 <li><code>node.filter(filterFunction)</code> (advanced) returns an array of all state nodes that pass the filterFunction.</li>
                                 <li><code>thread.run(threadId)</code> advances a 'thread', as if you had pressed the 🎲 button.</li>
                                 <li><code>thread.stop(threadId)</code> kills a 'thread'.</li>
                                 <li><code>thread.changeId(threadId, newId)</code> changes a 'thread' id to a new arbitrary string of your choice.</li>
+                                <li><code>thread.autorun(threadId, secondsInterval)</code> like <code>.run()</code> but will keep on running that thread continously.</li>
                             </ul>
                             <p><i>Note that threads aren't like actual OS threads, they're just a term I use to indicate one player's movement across the graph.</i></p>
                         </div>
@@ -136,7 +145,7 @@
                 </div>
                 <div>
                     <dt>Weight Script</dt>
-                    <textarea id="side-panel-edge-weight-script" class="script" type="text"></textarea>
+                    <textarea id="side-panel-edge-weight-script" class="script" type="text" spellcheck="false"></textarea>
                     <div class="tooltip-parent">
                         <span><u><i>How do edge scripts work?</i></u></span>
                         <div class="tooltip">
@@ -153,7 +162,7 @@
                 </div>
                 <div>
                     <dt>Travel Script</dt>
-                    <textarea id="side-panel-edge-travel-script" class="script" type="text"></textarea>
+                    <textarea id="side-panel-edge-travel-script" class="script" type="text" spellcheck="false"></textarea>
                     <div class="tooltip-parent">
                         <span><u><i>How do travel scripts work?</i></u></span>
                         <div class="tooltip">
@@ -194,7 +203,7 @@
                     <hr class="solid">
                     <dt>Actions</dt>
                     <div id="side-panel-buttons">
-                        <button data-action="reset-variables">Reset all variables</button>
+                        <button data-action="reset-variables">Stop All Threads</button>
                         <button data-action="save">Save</button>
                         <button data-action="load">Load</button>
                         <button data-action="export-clipboard">Export to clipboard</button>
@@ -217,6 +226,9 @@
         <div class="graph-stage">
             <div id="cy"></div>
             <div id="dom-layer" class="dom-layer"></div>
+            <div id="title-layer">
+                <h1 id="graph-stage-title">Title</h1>
+            </div>
         </div>
     </section>
     <script src="js/main.js"></script>
