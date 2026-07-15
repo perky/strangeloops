@@ -1,31 +1,43 @@
 window.exampleGraphJson = JSON.stringify([
   {
     "type": "viewport",
-    "zoom": 0.5754399373371625,
+    "version": 3,
+    "zoom": 0.5962556224278396,
     "position": {
-      "x": 1909.398219610307,
-      "y": 843.6097584363516
-    }
+      "x": 2153.780852262121,
+      "y": 937.2908494855087
+    },
+    "title": "HOLLOW KNIGHT PROGRESSION",
+    "description": "Example graph. Shows how the player can progress between areas in the video game Hollow Knight. You could do a similar thing for your own game to identify soft-locks, or to get a rough indication of how much time it takes to get to places."
   },
   {
     "type": "group",
     "id": "a0ea37c1-e447-4a03-8cec-a81faa87184e",
     "position": {
-      "x": -1378.692655877304,
-      "y": -1275.0548236314057
+      "x": -1445.9023409942213,
+      "y": -1304.5787726802405
     },
-    "color": "#8cd067",
-    "label": "Start here, hold shift and press play on \"OPENING AREA\""
+    "color": "#59ff00",
+    "label": "Press play \"OPENING AREA\" to start a 'thread'"
   },
   {
     "type": "group",
     "id": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
     "position": {
-      "x": -198.02235247202813,
-      "y": -319.8982882946668
+      "x": -183.41525312726756,
+      "y": -318.0621202663357
     },
     "color": "#be8523",
     "label": "kingdom's edge"
+  },
+  {
+    "type": "group",
+    "id": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
+    "position": {
+      "x": -2629.158286142925,
+      "y": -1153.9792951831128
+    },
+    "label": "Play the autorun node to continuously simulate a player moving around"
   },
   {
     "type": "node",
@@ -33,10 +45,11 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "a0ea37c1-e447-4a03-8cec-a81faa87184e",
     "name": "OPENING AREA",
     "description": "Tutorial",
+    "color": "white",
     "activateScript": "",
     "position": {
-      "x": -1592.2265257232573,
-      "y": -1192.3775111400812
+      "x": -1659.4362108401745,
+      "y": -1221.901460188916
     }
   },
   {
@@ -46,9 +59,10 @@ window.exampleGraphJson = JSON.stringify([
     "name": "DIRTMOUTH",
     "description": "",
     "activateScript": "",
+    "autoProgress": false,
     "position": {
-      "x": -1255.2130299255707,
-      "y": -1192.9494767295796
+      "x": -1233.7295051233234,
+      "y": -1222.4734257784144
     }
   },
   {
@@ -56,10 +70,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "264dac8a-34c2-4819-a323-68b93377c277",
     "name": "FORGOTTEN CROSSROADS",
     "description": "",
-    "activateScript": "g.foundMapmaker = true",
+    "activateScript": "g.foundMapmaker = true\ng.geo += 5",
+    "autoProgress": false,
     "position": {
-      "x": -1252.271791659349,
-      "y": -796.4658221476881
+      "x": -1254.7048428720393,
+      "y": -794.0327709349979
     }
   },
   {
@@ -67,10 +82,12 @@ window.exampleGraphJson = JSON.stringify([
     "id": "7ea4ad57-3682-4fcd-8ca6-868018f231e1",
     "name": "👺BOSS: FALSE KNIGHT",
     "description": "Gain City Crest",
-    "activateScript": "g.cityCrest = true\nself.done = true",
+    "color": "red",
+    "activateScript": "g.cityCrest = true\ng.geo += 200\nself.done = true",
+    "autoProgress": false,
     "position": {
-      "x": -1472.2538831480374,
-      "y": -932.4228425706976
+      "x": -1482.2096738206328,
+      "y": -939.9404078272246
     }
   },
   {
@@ -80,7 +97,7 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -1859.2766969538457,
+      "x": -1873.2082649832987,
       "y": -789.8145862096526
     }
   },
@@ -91,8 +108,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "Gain Vengeful Spirit",
     "activateScript": "g.vengefulSpirit = true\nself.done = true",
     "position": {
-      "x": -1603.6860187730424,
-      "y": -666.3082252419243
+      "x": -1582.8452353325144,
+      "y": -673.4445651868386
     }
   },
   {
@@ -100,7 +117,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
     "name": "CRYSTAL PEAK",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
       "x": -671.0721259057926,
       "y": -1046.072556456263
@@ -111,10 +128,10 @@ window.exampleGraphJson = JSON.stringify([
     "id": "a51e8cf7-e44f-4cfc-b2c8-bf950a693e91",
     "name": "HALLOWNEST'S CROWN",
     "description": "Has Pale Ore",
-    "activateScript": "g.paleOre += 1",
+    "activateScript": "if (!self.done) g.paleOre += 1\nself.done = true",
     "position": {
-      "x": -398.00204034195224,
-      "y": -1472.4964747806728
+      "x": -437.6040742279956,
+      "y": -1455.1705849555287
     }
   },
   {
@@ -122,10 +139,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "384eb72d-2bb3-4d1f-9aad-359efce6622d",
     "name": "👺BOSS: CRYSTAL GUARDIAN",
     "description": "",
-    "activateScript": "",
+    "color": "red",
+    "activateScript": "g.geo += 385\nself.done = true",
     "position": {
-      "x": -392.9619419910258,
-      "y": -1062.7456315168602
+      "x": -359.789399852514,
+      "y": -1253.487748813303
     }
   },
   {
@@ -133,7 +151,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
     "name": "GREENPATH WEST",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
       "x": -2132.595678319081,
       "y": -794.0845020239326
@@ -145,10 +163,11 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "a0ea37c1-e447-4a03-8cec-a81faa87184e",
     "name": "SLY'S SHOP",
     "description": "",
+    "color": "green",
     "activateScript": "",
     "position": {
-      "x": -1393.5694999058574,
-      "y": -1364.3644072971342
+      "x": -1460.7791850227745,
+      "y": -1393.888356345969
     }
   },
   {
@@ -157,10 +176,11 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "a0ea37c1-e447-4a03-8cec-a81faa87184e",
     "name": "MAPMAKER'S SHOP",
     "description": "",
+    "color": "green",
     "activateScript": "",
     "position": {
-      "x": -1165.158786031351,
-      "y": -1365.73213612273
+      "x": -1232.368471148268,
+      "y": -1395.2560851715648
     }
   },
   {
@@ -168,10 +188,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "e9fbb775-c9a8-43a5-8d5c-d31509e71b45",
     "name": "👺BOSS: HORNET",
     "description": "Gain Mothwing Cloak",
+    "color": "red",
     "activateScript": "g.mothwingCloak = true\nself.done = true",
     "position": {
-      "x": -2360.2160429771843,
-      "y": -787.3364838321697
+      "x": -2425.560106969426,
+      "y": -792.692554651206
     }
   },
   {
@@ -182,8 +203,8 @@ window.exampleGraphJson = JSON.stringify([
     "activateScript": "",
     "autoProgress": false,
     "position": {
-      "x": -2841.370298147587,
-      "y": -790.4102950467686
+      "x": -2808.1626590695623,
+      "y": -789.3390808829613
     }
   },
   {
@@ -202,7 +223,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "d2320c83-91e5-4ed7-a12e-3a3c45978336",
     "name": "QUEEN'S GARDEN",
     "description": "",
-    "activateScript": "g.visitedQueensGarden = true",
+    "activateScript": "g.visitedQueensGarden = true\ng.geo += 5",
     "position": {
       "x": -2544.3309514327398,
       "y": -332.03820679905306
@@ -213,7 +234,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "d28532c2-bcea-4c37-95e1-aad99e10f05d",
     "name": "FOG CANYON",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
       "x": -1892.3111720870374,
       "y": -297.6895642688567
@@ -224,9 +245,9 @@ window.exampleGraphJson = JSON.stringify([
     "id": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
     "name": "DEEPNEST",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
-      "x": -2146.831618398692,
+      "x": -2152.463162689051,
       "y": 228.1327078306314
     }
   },
@@ -257,10 +278,10 @@ window.exampleGraphJson = JSON.stringify([
     "id": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
     "name": "FUNGAL WASTES",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
-      "x": -1611.7136950909203,
-      "y": -307.7792005593428
+      "x": -1590.7876336852987,
+      "y": -309.0870793971942
     }
   },
   {
@@ -270,8 +291,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -1172.9617076334757,
-      "y": -312.3515996513711
+      "x": -1154.7330898746436,
+      "y": -230.3228197366263
     }
   },
   {
@@ -279,10 +300,10 @@ window.exampleGraphJson = JSON.stringify([
     "id": "f1684edb-2461-44fe-968e-4cb5e132902b",
     "name": "ROYAL WATERWAYS",
     "description": "",
-    "activateScript": "if (!self.open) {\n  self.open = true\n  g.simpleKey -= 1\n}",
+    "activateScript": "",
     "position": {
-      "x": -1402.2810785946274,
-      "y": -131.68981279471606
+      "x": -1449.07702362853,
+      "y": -77.41576694791861
     }
   },
   {
@@ -290,7 +311,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "d5fbcb65-7873-4859-8fd2-345f581a0fd1",
     "name": "ANCIENT BASIN",
     "description": "Has Simple Key",
-    "activateScript": "g.simpleKey += 1",
+    "activateScript": "if (!self.gottenKey) g.simpleKey += 1\nself.gottenKey = true",
     "position": {
       "x": -1218.9882443222018,
       "y": 245.61684748777992
@@ -314,8 +335,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "Gain Isma's Tear",
     "activateScript": "g.ismasTear = true",
     "position": {
-      "x": -806.545408597925,
-      "y": -44.62070357745233
+      "x": -820.5490992823704,
+      "y": -95.96756942041918
     }
   },
   {
@@ -324,10 +345,10 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
     "name": "KINGDOM'S EDGE",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
-      "x": -433.56892082057306,
-      "y": -314.1011568454532
+      "x": -418.96182147581266,
+      "y": -312.26498881712206
     }
   },
   {
@@ -370,8 +391,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -67.37075149463777,
-      "y": -88.65198523654966
+      "x": -52.76365214987709,
+      "y": -86.81581720821852
     }
   },
   {
@@ -382,8 +403,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "Has Pale Ore",
     "activateScript": "g.paleOre += 1",
     "position": {
-      "x": -263.4339858068979,
-      "y": -520.644591352784
+      "x": -248.82688646213722,
+      "y": -518.8084233244529
     }
   },
   {
@@ -393,19 +414,20 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -857.4850981515942,
-      "y": -468.59961302832966
+      "x": -840.3303024451151,
+      "y": -478.80233625298274
     }
   },
   {
     "type": "node",
-    "id": "ff74fe96-5acd-49d7-ac34-4c051ba94262",
-    "name": "👺BOSS: WATCHER",
-    "description": "",
-    "activateScript": "",
+    "id": "9d5c4469-a259-4daf-94a8-b1061cb53ab8",
+    "name": "👺BOSS: SOUL MASTER",
+    "description": "Gain Desolate Dive",
+    "color": "red",
+    "activateScript": "g.desolateDive = true\ng.geo += 380\nself.done = true",
     "position": {
-      "x": -762.0090717394719,
-      "y": -654.2556276645329
+      "x": -1323.3256563541445,
+      "y": -417.7795950276924
     }
   },
   {
@@ -426,8 +448,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -2192.8277849915276,
-      "y": -1384.8493297083633
+      "x": -2133.485175182152,
+      "y": -1370.6327533466215
     }
   },
   {
@@ -437,8 +459,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "",
     "activateScript": "",
     "position": {
-      "x": -1891.9691421485472,
-      "y": -1384.849329708363
+      "x": -1897.113652229404,
+      "y": -1374.7387612543575
     }
   },
   {
@@ -446,7 +468,8 @@ window.exampleGraphJson = JSON.stringify([
     "id": "9314680d-c198-4650-bd14-c053ce8b4439",
     "name": "👺BOSS: XERO",
     "description": "",
-    "activateScript": "",
+    "color": "red",
+    "activateScript": "self.done = true",
     "position": {
       "x": -171.95956079037455,
       "y": -933.609407778327
@@ -457,7 +480,8 @@ window.exampleGraphJson = JSON.stringify([
     "id": "496d0234-2ab4-4c60-a3f8-68167d60c9ed",
     "name": "👺BOSS: REVEK",
     "description": "",
-    "activateScript": "",
+    "color": "red",
+    "activateScript": "self.done = true",
     "position": {
       "x": -166.33380291069128,
       "y": -788.9801188974279
@@ -467,12 +491,13 @@ window.exampleGraphJson = JSON.stringify([
     "type": "node",
     "id": "3cd04ca1-cbbc-42e3-8d47-800285453f2c",
     "parentId": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
-    "name": "👺BOSS: HARKOTH",
+    "name": "👺BOSS: MARKOTH",
     "description": "",
-    "activateScript": "",
+    "color": "red",
+    "activateScript": "self.done = true",
     "position": {
-      "x": 37.52421587651686,
-      "y": -241.05617243017664
+      "x": 52.131315221277546,
+      "y": -239.2200044018455
     }
   },
   {
@@ -481,10 +506,11 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
     "name": "👺BOSS: HORNET",
     "description": "Gain King's Brand",
-    "activateScript": "g.kingsBrand",
+    "color": "red",
+    "activateScript": "g.kingsBrand = true\nself.done = true",
     "position": {
-      "x": -35.29647579047469,
-      "y": -441.7080536498179
+      "x": -20.689376445714004,
+      "y": -439.87188562148674
     }
   },
   {
@@ -492,10 +518,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "6e789d8e-0ae6-4e68-864d-98e9f3459c09",
     "name": "👺BOSS: GRUZ MOTHER",
     "description": "Rescue Sly",
-    "activateScript": "g.foundSly = true\nself.done = true",
+    "color": "red",
+    "activateScript": "g.foundSly = true\ng.geo += 50\nself.done = true",
     "position": {
-      "x": -1016.7344079743876,
-      "y": -660.7907232998082
+      "x": -1002.3196002939618,
+      "y": -636.4253270212488
     }
   },
   {
@@ -505,8 +532,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "Gain Mantis Claw",
     "activateScript": "g.mantisClaw = true",
     "position": {
-      "x": -1727.762219906652,
-      "y": -121.3203871970421
+      "x": -1688.3229191413993,
+      "y": -89.51449948312835
     }
   },
   {
@@ -514,10 +541,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
     "name": "👺👺👺BOSS: MANTIS LORDS",
     "description": "",
-    "activateScript": "self.done = true",
+    "color": "red",
+    "activateScript": "if (!self.done) g.geo += 620\nself.done = true",
     "position": {
-      "x": -1839.1892392831696,
-      "y": 78.7112499969464
+      "x": -1896.4398371682141,
+      "y": 85.07242753972918
     }
   },
   {
@@ -527,8 +555,8 @@ window.exampleGraphJson = JSON.stringify([
     "description": "Gain Tram Pass",
     "activateScript": "g.tramPass = true",
     "position": {
-      "x": -2517.86386447514,
-      "y": 317.27069399606603
+      "x": -2508.70871261018,
+      "y": 74.00523015571379
     }
   },
   {
@@ -536,10 +564,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "82961aca-38e1-428a-92fd-222472172ff0",
     "name": "BUY LUMAFLY LANTERN",
     "description": "",
-    "activateScript": "g.lumaflyLantern = true",
+    "color": "green",
+    "activateScript": "g.lumaflyLantern = true\ng.geo -= 1800",
     "position": {
-      "x": -1586.4248201423939,
-      "y": -1592.6703640416206
+      "x": -1653.4908305091556,
+      "y": -1615.1553076398407
     }
   },
   {
@@ -547,21 +576,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
     "name": "BUY SIMPLE KEY",
     "description": "",
-    "activateScript": "g.simpleKey += 1",
+    "color": "green",
+    "activateScript": "g.simpleKey += 1\ng.geo -= 950",
     "position": {
-      "x": -1396.3869313799962,
+      "x": -1384.0558146735143,
       "y": -1595.6798654023212
-    }
-  },
-  {
-    "type": "node",
-    "id": "184e70ed-77ef-4e65-b2b1-d8d7cccb26ed",
-    "name": "👺BOSS: GORB",
-    "description": "",
-    "activateScript": "",
-    "position": {
-      "x": -2241.0348953526914,
-      "y": -1549.5799861472299
     }
   },
   {
@@ -569,10 +588,11 @@ window.exampleGraphJson = JSON.stringify([
     "id": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
     "name": "👺BOSS: GALIEN",
     "description": "",
-    "activateScript": "",
+    "color": "red",
+    "activateScript": "self.done = true",
     "position": {
-      "x": -2184.0470022229883,
-      "y": 428.58358768771524
+      "x": -2005.8991610269625,
+      "y": 403.39561388956974
     }
   },
   {
@@ -599,13 +619,13 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "node",
-    "id": "396a1ec3-2d03-4432-9bb3-a42c1bf5d7a6",
-    "name": "👺BOSS: DREAMER HERRAH",
-    "description": "",
-    "activateScript": "",
+    "id": "6d2f7af2-588e-44dd-9343-bed0c7b672bb",
+    "name": "CRYSTAL HEART",
+    "description": "Gain Crystal Heart",
+    "activateScript": "g.crystalHeart = true",
     "position": {
-      "x": -2852.8312987122094,
-      "y": -334.03524019667464
+      "x": -216.2837454440574,
+      "y": -1078.2752628554747
     }
   },
   {
@@ -613,11 +633,315 @@ window.exampleGraphJson = JSON.stringify([
     "id": "cf498501-9fe0-41d8-925b-29dd1826c712",
     "name": "👺BOSS: BROKEN VESSEL",
     "description": "Gain Monarch Wings",
-    "activateScript": "g.monarchWings = true",
+    "color": "red",
+    "activateScript": "g.monarchWings = true\nself.done = true",
     "position": {
       "x": -1548.3476966361086,
       "y": 416.97549718845215
     }
+  },
+  {
+    "type": "node",
+    "id": "5a549813-5fb4-4501-ad61-3c1ff2cc7acc",
+    "parentId": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
+    "name": "AUTORUN",
+    "description": "",
+    "activateScript": "node.run(\"a5ba2a9a-6e4b-453b-8fd0-27c6c1b804c8\", \"main\")\nthread.autorun(\"main\", 0.2)\nlog(\"autorunning\")",
+    "position": {
+      "x": -2729.707664588148,
+      "y": -1155.1236480452028
+    }
+  },
+  {
+    "type": "node",
+    "id": "19cde869-d23c-4f34-aa9c-053e59064ff7",
+    "parentId": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
+    "name": "STOP",
+    "description": "",
+    "activateScript": "thread.stop(\"main\")\nthread.stop(threadId)",
+    "position": {
+      "x": -2528.6089076977023,
+      "y": -1152.8349423210227
+    }
+  },
+  {
+    "type": "node",
+    "id": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
+    "name": "FUNGAL CORE",
+    "description": "",
+    "activateScript": "",
+    "position": {
+      "x": -2092.6573156321474,
+      "y": -79.83040318296187
+    }
+  },
+  {
+    "type": "node",
+    "id": "055db1d8-8946-496f-b388-707be3965ce1",
+    "name": "👺BOSS: NOSK",
+    "description": "Has Pale ore",
+    "color": "red",
+    "activateScript": "if (!self.done) g.paleOre += 1\nself.done = true",
+    "position": {
+      "x": -2426.927090619054,
+      "y": 398.77714150978323
+    }
+  },
+  {
+    "type": "node",
+    "id": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
+    "name": "👺BOSS: GORB",
+    "description": "",
+    "color": "red",
+    "activateScript": "self.done = true",
+    "position": {
+      "x": -2290.3748512743273,
+      "y": -1512.8491768956803
+    }
+  },
+  {
+    "type": "edge",
+    "sourceId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
+    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "targetId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "targetId": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
+    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
+    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
+    "weight": 0,
+    "weightScript": "g.tramPass",
+    "label": "Tramway"
+  },
+  {
+    "type": "edge",
+    "sourceId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
+    "targetId": "a5ba2a9a-6e4b-453b-8fd0-27c6c1b804c8",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "5dc9325d-3455-4cde-82fe-cce34000c089",
+    "targetId": "9314680d-c198-4650-bd14-c053ce8b4439",
+    "weight": 1,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "9314680d-c198-4650-bd14-c053ce8b4439",
+    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "3cd04ca1-cbbc-42e3-8d47-800285453f2c",
+    "targetId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "496d0234-2ab4-4c60-a3f8-68167d60c9ed",
+    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "5dc9325d-3455-4cde-82fe-cce34000c089",
+    "targetId": "496d0234-2ab4-4c60-a3f8-68167d60c9ed",
+    "weight": 1,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
+    "targetId": "3cd04ca1-cbbc-42e3-8d47-800285453f2c",
+    "weight": 0,
+    "weightScript": "g.shadeCloak && !to.done",
+    "label": "Requires Shade Cloak"
+  },
+  {
+    "type": "edge",
+    "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
+    "targetId": "6e789d8e-0ae6-4e68-864d-98e9f3459c09",
+    "weight": 0,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
+    "targetId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "6e789d8e-0ae6-4e68-864d-98e9f3459c09",
+    "targetId": "264dac8a-34c2-4819-a323-68b93377c277",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
+    "targetId": "82961aca-38e1-428a-92fd-222472172ff0",
+    "weight": 1,
+    "weightScript": "!g.lumaflyLantern && g.geo >= 1800"
+  },
+  {
+    "type": "edge",
+    "sourceId": "39b3d7a7-6595-430f-b7ab-3cbd86134fa9",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "82961aca-38e1-428a-92fd-222472172ff0",
+    "targetId": "42423985-3a9a-47b1-8566-f40d83ac825d",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "39b3d7a7-6595-430f-b7ab-3cbd86134fa9",
+    "weight": 0,
+    "weightScript": "g.lumaflyLantern",
+    "label": "Requires Lumafly Lantern"
+  },
+  {
+    "type": "edge",
+    "sourceId": "d5fbcb65-7873-4859-8fd2-345f581a0fd1",
+    "targetId": "66514992-ea86-4bee-be26-68084159f75f",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "f1684edb-2461-44fe-968e-4cb5e132902b",
+    "targetId": "66514992-ea86-4bee-be26-68084159f75f",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "66514992-ea86-4bee-be26-68084159f75f",
+    "targetId": "264dac8a-34c2-4819-a323-68b93377c277",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
+    "targetId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
+    "targetId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
+    "targetId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "d5fbcb65-7873-4859-8fd2-345f581a0fd1",
+    "targetId": "cf498501-9fe0-41d8-925b-29dd1826c712",
+    "weight": 1,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
+    "weight": 0,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
+    "targetId": "6d2f7af2-588e-44dd-9343-bed0c7b672bb",
+    "weight": 1,
+    "weightScript": "g.mothwingCloak && g.mantisClaw",
+    "label": "Requires Mothwing & Mantis Claw"
+  },
+  {
+    "type": "edge",
+    "sourceId": "c98c7625-b297-4c15-81f5-8a3afbd2fad8",
+    "targetId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "6d2f7af2-588e-44dd-9343-bed0c7b672bb",
+    "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6"
+  },
+  {
+    "type": "edge",
+    "sourceId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
+    "targetId": "c98c7625-b297-4c15-81f5-8a3afbd2fad8",
+    "weight": 0,
+    "weightScript": "g.monarchWings && !to.done",
+    "label": "Requires Monarch Wings"
+  },
+  {
+    "type": "edge",
+    "sourceId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
+    "targetId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
+    "targetId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
+    "targetId": "42423985-3a9a-47b1-8566-f40d83ac825d",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
+    "targetId": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
+    "weight": 1,
+    "weightScript": "g.simpleKey == 0 && g.geo >= 950"
+  },
+  {
+    "type": "edge",
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "weight": 1
   },
   {
     "type": "edge",
@@ -642,14 +966,15 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "0451afcc-ba63-4fa0-b892-581ae45ec302",
     "targetId": "264dac8a-34c2-4819-a323-68b93377c277",
-    "weight": 1
+    "weight": 1,
+    "weightScript": null
   },
   {
     "type": "edge",
     "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
     "targetId": "7ea4ad57-3682-4fcd-8ca6-868018f231e1",
     "weight": 0,
-    "weightScript": "!g.cityCrest"
+    "weightScript": "!to.done"
   },
   {
     "type": "edge",
@@ -672,14 +997,14 @@ window.exampleGraphJson = JSON.stringify([
     "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
     "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
     "weight": 0,
-    "weightScript": "g.lantern",
+    "weightScript": "g.lumaflyLantern",
     "label": "Requires Lumafly Lantern"
   },
   {
     "type": "edge",
     "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
     "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
-    "weight": 0,
+    "weight": 1,
     "weightScript": "g.desolateDive && g.mothwingCloak",
     "label": "Requires Desolate Dive & Mothwing Cloak"
   },
@@ -719,7 +1044,8 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
     "targetId": "384eb72d-2bb3-4d1f-9aad-359efce6622d",
-    "weight": 1
+    "weight": 1,
+    "weightScript": "!to.done"
   },
   {
     "type": "edge",
@@ -877,7 +1203,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "d2320c83-91e5-4ed7-a12e-3a3c45978336",
     "targetId": "ecdf64ec-5824-4ba5-ae62-b3247080cd6a",
-    "weight": 0,
+    "weight": 1,
     "weightScript": "g.visitedQueensGarden && g.visitedStoneSanctuary"
   },
   {
@@ -891,7 +1217,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "3b0b7f78-c9db-4866-9d84-e41e30fd9afb",
     "targetId": "ecdf64ec-5824-4ba5-ae62-b3247080cd6a",
-    "weight": 0,
+    "weight": 1,
     "weightScript": "g.visitedQueensGarden && g.visitedStoneSanctuary && g.mothwingCloak && g.mantisClaw",
     "label": "Requires Mothwing Cloak & Mantis Claw"
   },
@@ -948,8 +1274,9 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "66514992-ea86-4bee-be26-68084159f75f",
     "targetId": "f1684edb-2461-44fe-968e-4cb5e132902b",
-    "weight": 0,
-    "weightScript": "g.simpleKey > 0",
+    "weight": 1,
+    "weightScript": "g.simpleKey > 0 || to.open",
+    "activateScript": "if (!to.open) {\n  g.simpleKey -= 1\n  to.open = true\n}",
     "label": "Needs key"
   },
   {
@@ -1123,15 +1450,15 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "edge",
-    "sourceId": "b2a67fa7-c175-4496-8479-0322a65024d9",
-    "targetId": "ff74fe96-5acd-49d7-ac34-4c051ba94262",
-    "weight": 1
+    "sourceId": "66514992-ea86-4bee-be26-68084159f75f",
+    "targetId": "9d5c4469-a259-4daf-94a8-b1061cb53ab8",
+    "weight": 0,
+    "weightScript": "!to.done"
   },
   {
     "type": "edge",
-    "sourceId": "ff74fe96-5acd-49d7-ac34-4c051ba94262",
-    "targetId": "b2a67fa7-c175-4496-8479-0322a65024d9",
-    "weight": 1
+    "sourceId": "9d5c4469-a259-4daf-94a8-b1061cb53ab8",
+    "targetId": "66514992-ea86-4bee-be26-68084159f75f"
   },
   {
     "type": "edge",
@@ -1143,250 +1470,56 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "edge",
-    "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
-    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
-    "weight": 0,
-    "weightScript": "g.tramPass",
-    "label": "Tramway"
-  },
-  {
-    "type": "edge",
-    "sourceId": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
-    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "sourceId": "5a549813-5fb4-4501-ad61-3c1ff2cc7acc",
+    "targetId": "19cde869-d23c-4f34-aa9c-053e59064ff7",
     "weight": 1
   },
   {
     "type": "edge",
-    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "targetId": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
-    "weight": 1
+    "sourceId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
   },
   {
     "type": "edge",
-    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "targetId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
-    "weight": 1
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098"
   },
   {
     "type": "edge",
-    "sourceId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
-    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "15e1fda5-6527-48f2-9790-0ff643dc2146",
-    "targetId": "a5ba2a9a-6e4b-453b-8fd0-27c6c1b804c8",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "5dc9325d-3455-4cde-82fe-cce34000c089",
-    "targetId": "9314680d-c198-4650-bd14-c053ce8b4439",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "9314680d-c198-4650-bd14-c053ce8b4439",
-    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "5dc9325d-3455-4cde-82fe-cce34000c089",
-    "targetId": "496d0234-2ab4-4c60-a3f8-68167d60c9ed",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "496d0234-2ab4-4c60-a3f8-68167d60c9ed",
-    "targetId": "5dc9325d-3455-4cde-82fe-cce34000c089",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
-    "targetId": "3cd04ca1-cbbc-42e3-8d47-800285453f2c",
-    "weight": 0,
-    "weightScript": "g.shadeCloak",
-    "label": "Requires Shade Cloak"
-  },
-  {
-    "type": "edge",
-    "sourceId": "3cd04ca1-cbbc-42e3-8d47-800285453f2c",
-    "targetId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
-    "targetId": "c98c7625-b297-4c15-81f5-8a3afbd2fad8",
+    "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
+    "targetId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
     "weight": 0,
     "weightScript": "g.monarchWings",
     "label": "Requires Monarch Wings"
   },
   {
     "type": "edge",
-    "sourceId": "c98c7625-b297-4c15-81f5-8a3afbd2fad8",
-    "targetId": "d9b6da28-1688-45fe-ad7e-9af1b9a67e63",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
-    "targetId": "6e789d8e-0ae6-4e68-864d-98e9f3459c09",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "6e789d8e-0ae6-4e68-864d-98e9f3459c09",
-    "targetId": "264dac8a-34c2-4819-a323-68b93377c277",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
-    "targetId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
-    "targetId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
-    "targetId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
-    "targetId": "ce3291b2-36f6-4fc1-becc-ae4e3c73fd49",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "66514992-ea86-4bee-be26-68084159f75f",
-    "targetId": "264dac8a-34c2-4819-a323-68b93377c277",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "f1684edb-2461-44fe-968e-4cb5e132902b",
-    "targetId": "66514992-ea86-4bee-be26-68084159f75f",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "d5fbcb65-7873-4859-8fd2-345f581a0fd1",
-    "targetId": "66514992-ea86-4bee-be26-68084159f75f",
-    "weight": 1
+    "sourceId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
   },
   {
     "type": "edge",
     "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "targetId": "39b3d7a7-6595-430f-b7ab-3cbd86134fa9",
+    "targetId": "055db1d8-8946-496f-b388-707be3965ce1",
     "weight": 0,
-    "weightScript": "g.lumaflyLantern",
-    "label": "Requires Lumafly Lantern"
+    "weightScript": "!to.done && g.crystalHeart",
+    "label": "Requires Crystal Heart"
   },
   {
     "type": "edge",
-    "sourceId": "39b3d7a7-6595-430f-b7ab-3cbd86134fa9",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "weight": 1
+    "sourceId": "055db1d8-8946-496f-b388-707be3965ce1",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
   },
   {
     "type": "edge",
-    "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
-    "targetId": "82961aca-38e1-428a-92fd-222472172ff0",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "82961aca-38e1-428a-92fd-222472172ff0",
-    "targetId": "42423985-3a9a-47b1-8566-f40d83ac825d",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
-    "targetId": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
-    "targetId": "42423985-3a9a-47b1-8566-f40d83ac825d",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "184e70ed-77ef-4e65-b2b1-d8d7cccb26ed",
-    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "weight": 1
+    "sourceId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
+    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b"
   },
   {
     "type": "edge",
     "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "targetId": "184e70ed-77ef-4e65-b2b1-d8d7cccb26ed",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "targetId": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "targetId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
-    "targetId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
-    "targetId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "19bc1ec4-19ff-421e-a9df-7b58462de223",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
-    "targetId": "396a1ec3-2d03-4432-9bb3-a42c1bf5d7a6",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "396a1ec3-2d03-4432-9bb3-a42c1bf5d7a6",
-    "targetId": "eb247d1e-4776-469b-beeb-cd80246a9a7d",
-    "weight": 1
-  },
-  {
-    "type": "edge",
-    "sourceId": "d5fbcb65-7873-4859-8fd2-345f581a0fd1",
-    "targetId": "cf498501-9fe0-41d8-925b-29dd1826c712",
-    "weight": 1
+    "targetId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
+    "weight": 0,
+    "weightScript": "!to.done"
   }
 ]);
