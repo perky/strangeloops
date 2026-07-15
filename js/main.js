@@ -151,6 +151,7 @@ let userSettings = {
 let transientState = {
     sidePanelTarget: null,
     runInstances: [],
+    dirtyNodes: [],
 };
 
 const userGlobalEnvProxy = new Proxy(userGlobalEnv, {
@@ -265,9 +266,8 @@ function activateNode(node, runInstanceId) {
         nextNode.data("canActivate", true);
     }
 
-    let currentNodeDirty = false;
-    let lastNodeDirty = false;
     let globalEnvDirty = false;
+    transientState.dirtyNodes = [node, lastRunningNode];
     const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
 
     // Run the travel script on the edge that is being travelled across.
@@ -292,8 +292,6 @@ function activateNode(node, runInstanceId) {
             showErrorToUser(`Failed to run travel script: ${error}`);
         }
         edge.data('userEnv', edgeUserdata);
-        currentNodeDirty = true;
-        lastNodeDirty = true;
         globalEnvDirty = true;
     }
 
@@ -313,7 +311,6 @@ function activateNode(node, runInstanceId) {
         } catch (error) {
             showErrorToUser(`Failed to run state script: ${error}`);
         }
-        currentNodeDirty = true;
         globalEnvDirty = true;
         if (transientState.sidePanelTarget && transientState.sidePanelTarget.id() === node.id()) {
             document.getElementById("side-panel-node-visits").innerText = node.data().userEnv._visits;
@@ -359,8 +356,6 @@ function activateNode(node, runInstanceId) {
                     showErrorToUser(`Weight Script returned invalid value: ${weight}`);
                 }
             }
-            currentNodeDirty = true;
-            lastNodeDirty = true;
             globalEnvDirty = true;
         }
     }
@@ -377,12 +372,8 @@ function activateNode(node, runInstanceId) {
         nextNode.data("hasValidEdgeTo", foundNonZeroEdge);
     }
 
-    if (currentNodeDirty) {
-        node.scratch('_domUpdaters').updateData(node);
-    }
-
-    if (lastNodeDirty) {
-        lastRunningNode.scratch('_domUpdaters').updateData(lastRunningNode);
+    for (const dirtyNode of transientState.dirtyNodes) {
+        dirtyNode.scratch('_domUpdaters').updateData(dirtyNode);
     }
 
     if (globalEnvDirty) {
@@ -473,20 +464,21 @@ function generateUserdataProxy(userdata, id) {
     });
 }
 
+function findNodeByIdOrTitle(nodeIdOrTitle) {
+    const foundNodesById = cy.nodes(`#${nodeIdOrTitle}`);
+    if (foundNodesById.length > 0) {
+        return foundNodesById[0];
+    }
+    const foundNodesByTitle = cy.nodes(`[name = "${nodeTitleOrGuid.toUpperCase()}"]`);
+    if (foundNodesByTitle.length === 0) {
+        return foundNodesByTitle[0];
+    }
+    return null;
+}
 
-const userspaceFunctions = {
-    runNode(nodeTitleOrGuid, runInstanceId) {
-        let foundNodes = cy.nodes(`[name = "${nodeTitleOrGuid.toUpperCase()}"]`);
-        if (foundNodes.length === 0) {
-            foundNodes = cy.nodes(`#${nodeTitleOrGuid}`);
-        }
-        if (foundNodes.length > 0) {
-            activateNode(foundNodes[0], runInstanceId);
-        } else {
-            showErrorToUser(`Failed to run node. There is no node ${nodeTitleOrGuid.toUpperCase()}`);
-        }
-    },
-    runThread(runInstanceId) {
+/// Userland functions related to threads (AKA Run Instances).
+const userspaceThreadFunctions = {
+    run(runInstanceId) {
         const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
         if (otherRunInstance) {
             progressToNextNode(otherRunInstance.runningNode);
@@ -494,7 +486,7 @@ const userspaceFunctions = {
             showErrorToUser(`Failed to run thread. There is no thread named ${runInstanceId}.`)
         }
     },
-    changeThreadId(runInstanceId, newRunInstanceId) {
+    changeId(runInstanceId, newRunInstanceId) {
         const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
         if (otherRunInstance) {
             otherRunInstance.id = runInstanceId ?? guid();
@@ -502,7 +494,7 @@ const userspaceFunctions = {
             showErrorToUser(`Failed to change thread id. There is no thread with id ${runInstanceId}`);
         }
     },
-    stopThread(runInstanceId) {
+    stop(runInstanceId) {
         const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
         transientState.runInstances = transientState.runInstances.filter((n) => {
             return n.id !== runInstanceId;
@@ -513,6 +505,43 @@ const userspaceFunctions = {
             showErrorToUser(`Failed to stop thread. There is no thread named ${runInstanceId}`);
         }
     },
+};
+
+/// Userland functions related to state nodes.
+const userspaceNodeFunctions = {
+    run(nodeTitleOrGuid, runInstanceId) {
+        const foundNode = findNodeByIdOrTitle(nodeIdOrTitle);
+        if (foundNode) {
+            activateNode(foundNode, runInstanceId);
+        } else {
+            showErrorToUser(`Failed to run node. There is no node ${nodeIdOrTitle.toUpperCase()}`);
+        }
+    },
+    filter(filterFn) {
+        const foundNodes = cy.nodes('[type = "state"]');
+        foundNodes.forEach((n) => transientState.dirtyNodes.push(n));
+        const nodeUserEnvs = foundNodes.map((n) => generateUserdataProxy(n.data().userEnv, n.id()));
+        return nodeUserEnvs.filter(filterFn);
+    },
+    get(nodeIdOrTitle) {
+        const foundNode = findNodeByIdOrTitle(nodeIdOrTitle);
+        if (foundNode) {
+            transientState.dirtyNodes.push(foundNode);
+            return generateUserdataProxy(foundNode.data().userEnv, foundNode.id());
+        } else {
+            return null;
+        }
+    },
+    set(nodeIdOrTitle, fieldName, value) {
+        const foundNode = findNodeByIdOrTitle(nodeIdOrTitle);
+        if (foundNode) {
+            foundNode.data().userEnv[fieldName] = value;
+            transientState.dirtyNodes.push(foundNode);
+            return true;
+        } else {
+            return false;
+        }
+    }
 };
 
 /// Run a user-created script.
@@ -530,7 +559,8 @@ function runUserScript(script, runInstance, globalEnv, nodeEnv) {
     const min = Math.min;
     const max = Math.max;
     const log = showInfoToUser;
-    const {runNode, runThread, changeThreadId, stopThread} = userspaceFunctions;
+    const node = userspaceNodeFunctions;
+    const thread = userspaceThreadFunctions;
     const g = globalEnv;
     const self = nodeEnv;
     const result = eval(script);
@@ -545,7 +575,8 @@ function runUserEdgeScript(script, runInstance, globalEnv, edgeEnv, fromNodeEnv,
     const min = Math.min;
     const max = Math.max;
     const log = showInfoToUser;
-    const {runNode, runThread, changeThreadId, stopThread} = userspaceFunctions;
+    const node = userspaceNodeFunctions;
+    const thread = userspaceThreadFunctions;
     const g = globalEnv;
     const self = edgeEnv;
     const from = fromNodeEnv;
@@ -1279,6 +1310,17 @@ document.addEventListener("keydown", (e) => {
     const inputFieldFocused = (e.target.type === "textarea" || e.target.type === "text");
     const altDown = (e.key === "Alt");
     const shiftDown = (e.key === "Shift");
+    if ((e.target.type === "textarea") && e.key === "Tab") {
+        e.preventDefault();
+        const inputEl = e.target;
+        const start = inputEl.selectionStart;
+        const end = inputEl.selectionEnd;
+        const tabStr = "  ";
+        inputEl.value = inputEl.value.substring(0, start) + tabStr + inputEl.value.substring(end);
+        inputEl.selectionStart = start + tabStr.length;
+        inputEl.selectionEnd = start + tabStr.length;
+        return true;
+    }
     if (inputFieldFocused && !(altDown || shiftDown)) {
         return true;
     }
