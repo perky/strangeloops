@@ -35,7 +35,7 @@
                 </div>
             </div>
             <dl id="side-panel-noselection" class="side-panel-variant">
-                <div>Select a node</div>
+                <div><i>Select a node or edge</i></div>
             </dl>
             <dl id="side-panel-node-details" class="side-panel-variant">
                 <div>
@@ -50,20 +50,10 @@
                     <dt>Description</dt>
                     <textarea id="side-panel-description" type="text"></textarea>
                 </div>
-                <div>
-                    <dt>Colour</dt>
-                    <select id="side-panel-node-color" type="text">
-                        <option value="white">White</option>
-                        <option value="blue">Blue</option>
-                        <option value="violet">Violet</option>
-                        <option value="green">Green</option>
-                        <option value="red">Red</option>
-                        <option value="gold">Gold</option>
-                    </select>
-                </div>
+                
                 <div>
                     <dt>Script</dt>
-                    <textarea id="side-panel-script1" type="text" spellcheck="false"></textarea>
+                    <textarea id="side-panel-script1" class="script" type="text" spellcheck="false"></textarea>
                     <div class="tooltip-parent">
                         <span><u><i>How do scripts work?</i></u></span>
                         <div class="tooltip">
@@ -87,22 +77,38 @@
                                 <li><code>min(a, b)</code> picks the lowest of a or b.</li>
                                 <li><code>max(a, b)</code> picks the highest of a or b.</li>
                                 <li><code>log(message)</code> displays the message in the side bar for 5s.</li>
-                                <li><code>runNode(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>
-                                <li><code>runThread(threadId)</code> advances a 'thread', as if you had pressed the 🎲 button.</li>
-                                <li><code>stopThread(threadId)</code> kills a 'thread'.</li>
-                                <li><code>changeThreadId(threadId, newId)</code> changes a 'thread' id to a new arbitrary string of your choice.</li>
+                                <li><code>node.run(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>
+                                <li><code>node.set(idOrTitle, variableName, value)</code> sets a variable on another state node.</li>
+                                <li><code>node.get(idOrTitle)</code> gets another state node's data.</li>
+                                <li><code>node.filter(filterFunction)</code> (advanced) returns an array of all state nodes that pass the filterFunction.</li>
+                                <li><code>thread.run(threadId)</code> advances a 'thread', as if you had pressed the 🎲 button.</li>
+                                <li><code>thread.stop(threadId)</code> kills a 'thread'.</li>
+                                <li><code>thread.changeId(threadId, newId)</code> changes a 'thread' id to a new arbitrary string of your choice.</li>
                             </ul>
                             <p><i>Note that threads aren't like actual OS threads, they're just a term I use to indicate one player's movement across the graph.</i></p>
                         </div>
                     </div>
                 </div>
-                <div>
-                    <dt>auto-progress</dt>
-                    <input id="side-panel-autoprogress" type="checkbox"></input>
-                </div>
-                <div>
-                    <dt>visits</dt>
-                    <code id="side-panel-node-visits">0</code>
+                <div class="column-grid">
+                    <div>
+                        <dt>auto-progress</dt>
+                        <input id="side-panel-autoprogress" type="checkbox"></input>
+                    </div>
+                    <div>
+                        <dt>Colour</dt>
+                        <select id="side-panel-node-color" type="text">
+                            <option value="white">White</option>
+                            <option value="blue">Blue</option>
+                            <option value="violet">Violet</option>
+                            <option value="green">Green</option>
+                            <option value="red">Red</option>
+                            <option value="gold">Gold</option>
+                        </select>
+                    </div>
+                    <div>
+                        <dt>visits</dt>
+                        <code id="side-panel-node-visits">0</code>
+                    </div>
                 </div>
             </dl>
             <dl id="side-panel-edge-details" class="side-panel-variant">
@@ -130,7 +136,7 @@
                 </div>
                 <div>
                     <dt>Weight Script</dt>
-                    <textarea id="side-panel-edge-weight-script" type="text"></textarea>
+                    <textarea id="side-panel-edge-weight-script" class="script" type="text"></textarea>
                     <div class="tooltip-parent">
                         <span><u><i>How do edge scripts work?</i></u></span>
                         <div class="tooltip">
@@ -147,7 +153,7 @@
                 </div>
                 <div>
                     <dt>Travel Script</dt>
-                    <textarea id="side-panel-edge-travel-script" type="text"></textarea>
+                    <textarea id="side-panel-edge-travel-script" class="script" type="text"></textarea>
                     <div class="tooltip-parent">
                         <span><u><i>How do travel scripts work?</i></u></span>
                         <div class="tooltip">
@@ -173,17 +179,19 @@
                 </div>
             </dl>
             
-
+            
             <dl id="side-panel-global">
                 <div id="side-panel-info-message" class="info-message" hidden="true"></div>
                 <div id="side-panel-error-message" class="error-message" hidden="true"></div>
                 <dl id="side-panel-data">
                     <div>
+                        <hr class="solid">
                         <dt>Variables</dt>
                         <span id="side-panel-data-output"></span>
                     </div>
                 </dl>
                 <div>
+                    <hr class="solid">
                     <dt>Actions</dt>
                     <div id="side-panel-buttons">
                         <button data-action="reset-variables">Reset all variables</button>
@@ -195,6 +203,7 @@
                     </div>
                 </div>
                 <div>
+                    <hr class="solid">
                     <dt>Auto Progress Seconds Interval</dd>
                     <input type="number" id="side-panel-global-autoprogress-seconds"></input>
                     <dt>Autosave Seconds Interval</dd>
