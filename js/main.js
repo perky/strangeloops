@@ -215,6 +215,7 @@ function activateNode(node, runInstanceId) {
 
     node.data("running", true);
     node.data("canActivate", false);
+    const lastRunningNode = currentRunInstance.runningNode;
     currentRunInstance.runningNode = node;
 
     // Route nodes automatically progress to next.
@@ -264,16 +265,56 @@ function activateNode(node, runInstanceId) {
         nextNode.data("canActivate", true);
     }
 
+    let currentNodeDirty = false;
+    let lastNodeDirty = false;
+    let globalEnvDirty = false;
+    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
+
+    // Run the travel script on the edge that is being travelled across.
+    const edgesTo = lastRunningNode.edgesTo(node);
+    if (edgesTo.length > 0) {
+        const edge = edgesTo[0];
+        console.log(edge.data());
+        const edgeUserdata = edge.data().userEnv ?? {};
+        const edgeActivateScript = edge.data().activateScript;
+        const edgeUserdataProxy = generateUserdataProxy(edgeUserdata, edge.id());
+        const fromNodeUserdataProxy = generateUserdataProxy(lastRunningNode.data().userEnv, lastRunningNode.id());
+        try {
+            runUserEdgeScript(
+                edgeActivateScript, 
+                currentRunInstance, 
+                userGlobalEnvProxy, 
+                edgeUserdataProxy, 
+                fromNodeUserdataProxy, 
+                runningNodeUserdataProxy
+            );
+        } catch (error) {
+            showErrorToUser(`Failed to run travel script: ${error}`);
+        }
+        edge.data('userEnv', edgeUserdata);
+        currentNodeDirty = true;
+        lastNodeDirty = true;
+        globalEnvDirty = true;
+    }
+
     // Run the user script on this activates node.
     // A proxy is used so the user doesn't have to declare
     // any variables, it just automatically sets any undefined
     // variable to 0.
-    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
     runningNodeUserdataProxy._visits += 1;
     if (node.data().activateScript) {
-        runUserScript(node.data().activateScript, currentRunInstance, userGlobalEnvProxy, runningNodeUserdataProxy);
-        node.scratch('_domUpdaters').updateData(node);
-        document.getElementById("side-panel-data-output").innerHTML = renderDataToHtml(userGlobalEnv);
+        try {
+            runUserScript(
+                node.data().activateScript, 
+                currentRunInstance, 
+                userGlobalEnvProxy, 
+                runningNodeUserdataProxy
+            );
+        } catch (error) {
+            showErrorToUser(`Failed to run state script: ${error}`);
+        }
+        currentNodeDirty = true;
+        globalEnvDirty = true;
         if (transientState.sidePanelTarget && transientState.sidePanelTarget.id() === node.id()) {
             document.getElementById("side-panel-node-visits").innerText = node.data().userEnv._visits;
         }
@@ -293,14 +334,19 @@ function activateNode(node, runInstanceId) {
             const edgeUserdataProxy = generateUserdataProxy(edgeData.userEnv ?? {}, edge.id());
             const fromNodeUserdataProxy = generateUserdataProxy(edge.source().data().userEnv ?? {}, edge.source().id());
             const toNodeUserdataProxy = generateUserdataProxy(edge.target().data().userEnv ?? {}, edge.target().id());
-            const weight = runUserWeightScript(
-                edgeData.weightScript, 
-                currentRunInstance, 
-                userGlobalEnvProxy, 
-                edgeUserdataProxy, 
-                fromNodeUserdataProxy,
-                toNodeUserdataProxy
-            );
+            let weight = 1.0;
+            try {
+                weight = runUserEdgeScript(
+                    edgeData.weightScript, 
+                    currentRunInstance, 
+                    userGlobalEnvProxy, 
+                    edgeUserdataProxy, 
+                    fromNodeUserdataProxy,
+                    toNodeUserdataProxy
+                );
+            } catch (error) {
+                showErrorToUser(`Failed to run weight script: ${error}`);
+            }
             edge.data("userEnv", edgeUserdata);
             if (weight === true) {
                 edge.data('weight', 1);
@@ -313,6 +359,9 @@ function activateNode(node, runInstanceId) {
                     showErrorToUser(`Weight Script returned invalid value: ${weight}`);
                 }
             }
+            currentNodeDirty = true;
+            lastNodeDirty = true;
+            globalEnvDirty = true;
         }
     }
 
@@ -326,6 +375,18 @@ function activateNode(node, runInstanceId) {
             }
         }
         nextNode.data("hasValidEdgeTo", foundNonZeroEdge);
+    }
+
+    if (currentNodeDirty) {
+        node.scratch('_domUpdaters').updateData(node);
+    }
+
+    if (lastNodeDirty) {
+        lastRunningNode.scratch('_domUpdaters').updateData(lastRunningNode);
+    }
+
+    if (globalEnvDirty) {
+        document.getElementById("side-panel-data-output").innerHTML = renderDataToHtml(userGlobalEnv);
     }
 
     // Auto progress to the next node if auto-progress is enabled.
@@ -476,7 +537,7 @@ function runUserScript(script, runInstance, globalEnv, nodeEnv) {
     return result;
 }
 
-function runUserWeightScript(script, runInstance, globalEnv, edgeEnv, fromNodeEnv, toNodeEnv) {
+function runUserEdgeScript(script, runInstance, globalEnv, edgeEnv, fromNodeEnv, toNodeEnv) {
     "use strict";
     const threadId = runInstance.id;
     const reset = resetAllUserVariablesButKeepRunning;
@@ -721,6 +782,7 @@ function saveGraphToJson()  {
             targetId: edge.target().id(),
             weight: edge.data().weight,
             weightScript: edge.data().weightScript,
+            activateScript: edge.data().activateScript,
             label: edge.data().label,
         });
     });
@@ -768,6 +830,7 @@ function loadGraphFromJson(jsonText) {
                     target: item.targetId,
                     weight: parseFloat(item.weight ?? '1'),
                     weightScript: item.weightScript,
+                    activateScript: item.activateScript,
                     label: item.label,
                 }
             });
@@ -1169,6 +1232,18 @@ bindSidePanelElement("side-panel-edge-weight-script", "change", {
             edge.data('weightScript', element.value);
         } else {
             edge.data('weightScript', null);
+        }
+    }
+});
+bindSidePanelElement("side-panel-edge-travel-script", "change", {
+    updateElement(element, edge) {
+        element.value = edge.data().activateScript ?? "";
+    },
+    setData(edge, element, updaters) {
+        if (element.value.length > 0) {
+            edge.data('activateScript', element.value);
+        } else {
+            edge.data('activateScript', null);
         }
     }
 });
