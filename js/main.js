@@ -479,7 +479,7 @@ function findNodeByIdOrTitle(nodeIdOrTitle) {
         return foundNodesById[0];
     }
     const foundNodesByTitle = cy.nodes(`[name = "${nodeIdOrTitle.toUpperCase()}"]`);
-    if (foundNodesByTitle.length === 0) {
+    if (foundNodesByTitle.length > 0) {
         return foundNodesByTitle[0];
     }
     return null;
