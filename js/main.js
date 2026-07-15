@@ -47,6 +47,12 @@ var cy = cytoscape({
             }
         },
         {
+            "selector": "edge[?activateScript]",
+            "style": {
+                'mid-target-arrow-shape': 'triangle-tee',
+            },
+        },
+        {
             "selector": "edge[?weightScript]",
             "style": {
                 "line-color": "#7c3aed",
@@ -152,6 +158,10 @@ let transientState = {
     sidePanelTarget: null,
     runInstances: [],
     dirtyNodes: [],
+};
+let graphState = {
+    title: "",
+    description: ""
 };
 
 const userGlobalEnvProxy = new Proxy(userGlobalEnv, {
@@ -274,7 +284,6 @@ function activateNode(node, runInstanceId) {
     const edgesTo = lastRunningNode.edgesTo(node);
     if (edgesTo.length > 0) {
         const edge = edgesTo[0];
-        console.log(edge.data());
         const edgeUserdata = edge.data().userEnv ?? {};
         const edgeActivateScript = edge.data().activateScript;
         const edgeUserdataProxy = generateUserdataProxy(edgeUserdata, edge.id());
@@ -505,11 +514,26 @@ const userspaceThreadFunctions = {
             showErrorToUser(`Failed to stop thread. There is no thread named ${runInstanceId}`);
         }
     },
+    autorun(runInstanceId, intervalSeconds) {
+        const _run = () => {
+            const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
+            if (otherRunInstance) {
+                progressToNextNode(otherRunInstance.runningNode);
+                setTimeout(_run, intervalSeconds * 1000);
+            }
+        };
+        const _otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
+        if (_otherRunInstance) {
+            setTimeout(_run, intervalSeconds * 1000);
+        } else {
+            showErrorToUser(`Failed to autorun thread: ${runInstanceId}`);
+        }
+    },
 };
 
 /// Userland functions related to state nodes.
 const userspaceNodeFunctions = {
-    run(nodeTitleOrGuid, runInstanceId) {
+    run(nodeIdOrTitle, runInstanceId) {
         const foundNode = findNodeByIdOrTitle(nodeIdOrTitle);
         if (foundNode) {
             activateNode(foundNode, runInstanceId);
@@ -663,7 +687,6 @@ function bindStateNodeActions(node, domUpdaters) {
         activateNode(node);
     });
     element.querySelector("[data-action='progress']").addEventListener("click", (e) => {
-        console.log("progress to", node.data().name);
         progressToNextNode(node);
     });
     node.on("data", (e) => {
@@ -764,9 +787,11 @@ function saveGraphToJson()  {
     // save viewport
     state.push({
         type: 'viewport',
-        version: 2,
+        version: 3,
         zoom: cy.zoom(),
         position: cy.pan(),
+        title: graphState.title,
+        description: graphState.description,
     });
     // Save groups first.
     cy.nodes().forEach((node) => {
@@ -831,6 +856,8 @@ function loadGraphFromJson(jsonText) {
                 zoom: item.zoom,
                 pan: item.position,
             });
+            graphState.title = item.title;
+            graphState.description = item.description;
         } else if (item.type === 'node') {
             restoreStateNode(item);
         } else if (item.type === 'group') {
@@ -865,6 +892,12 @@ function loadGraphFromJson(jsonText) {
                     label: item.label,
                 }
             });
+        }
+    }
+    for (const bind of sidePanelBinds) {
+        if (bind.functions.updateElementNoTarget) {
+            const element = document.getElementById(bind.id);
+            bind.functions.updateElementNoTarget(element);
         }
     }
 }
@@ -1031,25 +1064,21 @@ function showSidePanelVariant(id) {
 
 function setSidePanelData(target) {
     transientState.sidePanelTarget = target;
-    let shouldUpdateBinds = false;
     if (target === null) {
         showSidePanelVariant("side-panel-noselection");
-        return;
     } else if (target.data().type === "state") {
-        shouldUpdateBinds = true;
         showSidePanelVariant("side-panel-node-details");
     } else if (target.group() === "edges") {
-        shouldUpdateBinds = true;
         showSidePanelVariant("side-panel-edge-details");
     } else if (target.data().type === 'group') {
-        shouldUpdateBinds = true;
         showSidePanelVariant("side-panel-group-details");
     }
-    if (shouldUpdateBinds) {
-        const data = target.data();
-        for (const bind of sidePanelBinds) {
-            const element = document.getElementById(bind.id);
+    for (const bind of sidePanelBinds) {
+        const element = document.getElementById(bind.id);
+        if (bind.functions.updateElement && target) {
             bind.functions.updateElement(element, target);
+        } else if (bind.functions.updateElementNoTarget) {
+            bind.functions.updateElementNoTarget(element);
         }
     }
 }
@@ -1149,6 +1178,9 @@ function bindSidePanelElement(id, listenerEvent, functions) {
                 const domUpdaters = transientState.sidePanelTarget.scratch('_domUpdaters');
                 functions.setData(transientState.sidePanelTarget, e.target, domUpdaters);
             }
+            if (functions.setGraphData) {
+                functions.setGraphData(graphState, e.target);
+            }
         });
     }
     sidePanelBinds.push({
@@ -1175,6 +1207,25 @@ function bindSidePanelCheckboxSetting(id, listenerEvent, settingFieldName) {
         localStorage.setItem(settingFieldName, value.toString());
     });
 }
+
+bindSidePanelElement("side-panel-graph-title", "input", {
+    updateElementNoTarget(element) {
+        element.value = graphState.title;
+        document.getElementById("graph-stage-title").innerText = element.value;
+    },
+    setGraphData(graphData, element) {
+        graphData.title = element.value;
+        document.getElementById("graph-stage-title").innerText = element.value;
+    }
+});
+bindSidePanelElement("side-panel-graph-description", "input", {
+    updateElementNoTarget(element) {
+        element.value = graphState.description ?? "";
+    },
+    setGraphData(graphData, element) {
+        graphData.description = element.value ?? "";
+    }
+});
 
 bindSidePanelElement("side-panel-id", null, {
     updateElement(element, node) {
