@@ -1281,7 +1281,14 @@ function renderDataToHtml(data) {
         return 0;
     });
     sortedData.forEach((d) => {
-        html += `<code>${d[0]}</code> ${d[1]}<br/>`;
+        const fieldName = d[0];
+        let fieldValue = d[1];
+        if ((typeof fieldValue) === 'number') {
+            fieldValue = (Number.isInteger(fieldValue)) ? fieldValue : fieldValue.toFixed(2); 
+        } else if ((typeof fieldValue) === 'function') {
+            fieldValue = "(function)";
+        }
+        html += `<code>${fieldName}</code> ${fieldValue}<br/>`;
     });
     return html;
 }
