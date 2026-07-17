@@ -229,6 +229,31 @@ function activateNode(node, runInstanceId) {
     const lastRunningNode = currentRunInstance.runningNode;
     currentRunInstance.runningNode = node;
 
+    let globalEnvDirty = false;
+    transientState.dirtyNodes = [node, lastRunningNode];
+    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
+
+    // Run the travel script on the edge that is being travelled across.
+    const edgesTo = lastRunningNode.edgesTo(node);
+    if (edgesTo.length > 0) {
+        const edge = edgesTo[0];
+        if (activateEdgeActivateScript(edge, currentRunInstance, lastRunningNode, node)) {
+            globalEnvDirty = true;
+        }
+    } else {
+        // Could not find a direct edge between the current node and last node, that means
+        // there are route nodes between them, so we need to find that path and run edge travelScripts
+        // along that path.
+        const search = searchForPathBetweenNodes(lastRunningNode, node);
+        if (search.validPath) {
+            for (const edge of search.pathEdges) {
+                if (activateEdgeActivateScript(edge, currentRunInstance, lastRunningNode, node)) {
+                    globalEnvDirty = true;
+                }
+            }
+        }
+    }
+
     // Route nodes automatically progress to next.
     const nodeType = node.data().type;
     if (nodeType === "route") {
@@ -255,6 +280,7 @@ function activateNode(node, runInstanceId) {
     for (let routeNode of connectedRouteNodes) {
         let foundStateNodes = [];
         let stateNodeDepth = 9999;
+        // Do a depth-first-search
         cy.elements().dfs({
             root: routeNode,
             visit: (currentNode, edge, previousNode, index, depth) => {
@@ -276,34 +302,6 @@ function activateNode(node, runInstanceId) {
     }
     for (const nextNode of currentRunInstance.nextNodes) {
         nextNode.data("canActivate", true);
-    }
-
-    let globalEnvDirty = false;
-    transientState.dirtyNodes = [node, lastRunningNode];
-    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
-
-    // Run the travel script on the edge that is being travelled across.
-    const edgesTo = lastRunningNode.edgesTo(node);
-    if (edgesTo.length > 0) {
-        const edge = edgesTo[0];
-        const edgeUserdata = edge.data().userEnv ?? {};
-        const edgeActivateScript = edge.data().activateScript;
-        const edgeUserdataProxy = generateUserdataProxy(edgeUserdata, edge.id());
-        const fromNodeUserdataProxy = generateUserdataProxy(lastRunningNode.data().userEnv, lastRunningNode.id());
-        try {
-            runUserEdgeScript(
-                edgeActivateScript, 
-                currentRunInstance, 
-                userGlobalEnvProxy, 
-                edgeUserdataProxy, 
-                fromNodeUserdataProxy, 
-                runningNodeUserdataProxy
-            );
-        } catch (error) {
-            showErrorToUser(`Failed to run travel script: ${error}`);
-        }
-        edge.data('userEnv', edgeUserdata);
-        globalEnvDirty = true;
     }
 
     // Run the user script on this activates node.
@@ -380,24 +378,12 @@ function activateNode(node, runInstanceId) {
         if (edgesTo.length === 0) {
             // This must be a node along route nodes.
             // Calculate the path so we can look for any zero weight edges along it.
-            const search = cy.elements().aStar({
-                root: currentRunInstance.runningNode,
-                goal: nextNode,
-                directed: true,
-                weight: (e) => {
-                    const weight = e.data().weight ?? 1;
-                    if (weight <= 0) return Infinity;
-                    return weight;
-                }
-            });
-            const hasValidPath = (search.distance !== Infinity);
-            nextNode.data("hasValidEdgeTo", hasValidPath);
-            nextNode.data("canActivate", hasValidPath);
-            if (hasValidPath) {
-                for (const el of search.path) {
-                    if (el.isEdge()) {
-                        el.data('traversable', true);
-                    }
+            const search = searchForPathBetweenNodes(currentRunInstance.runningNode, nextNode);
+            nextNode.data("hasValidEdgeTo", search.validPath);
+            nextNode.data("canActivate", search.validPath);
+            if (search.validPath) {
+                for (const edge of search.pathEdges) {
+                    edge.data('traversable', true);
                 }
             }
         } else {
@@ -427,6 +413,32 @@ function activateNode(node, runInstanceId) {
             progressToNextNode(node);
         }, userSettings.autoProgressSecondsInterval * 1000);
     }
+}
+
+/// Activates an edge Activate Script, which is run whenever a runInstance travels along that edge.
+function activateEdgeActivateScript(edge, runInstance, fromNode, toNode) {
+    const edgeActivateScript = edge.data().activateScript;
+    if (!edgeActivateScript || edgeActivateScript.length == 0) {
+        return false;
+    }
+    const edgeUserdata = edge.data().userEnv ?? {};
+    const edgeUserdataProxy = generateUserdataProxy(edgeUserdata, edge.id());
+    const fromNodeUserdataProxy = generateUserdataProxy(fromNode.data().userEnv, fromNode.id());
+    const toNodeUserdataProxy = generateUserdataProxy(toNode.data().userEnv, toNode.id());
+    try {
+        runUserEdgeScript(
+            edgeActivateScript, 
+            runInstance, 
+            userGlobalEnvProxy, 
+            edgeUserdataProxy, 
+            fromNodeUserdataProxy, 
+            toNodeUserdataProxy
+        );
+    } catch (error) {
+        showErrorToUser(`Failed to run travel script: ${error}`);
+    }
+    edge.data('userEnv', edgeUserdata);
+    return true;
 }
 
 function activateButton(node) {
@@ -519,6 +531,37 @@ function progressToNextNode(sourceNode) {
     const sample = weightedRandom(targetNodes, weights);
     if (sample) {
         activateNode(sample.item);
+    }
+}
+
+function searchForPathBetweenNodes(fromNode, toNode) {
+    const search = cy.elements().aStar({
+        root: fromNode,
+        goal: toNode,
+        directed: true,
+        weight: (e) => {
+            const weight = e.data().weight ?? 1;
+            if (weight <= 0) return Infinity;
+            return weight;
+        }
+    });
+    if (search.found) {
+        let validPath = (search.distance !== Infinity);
+        let pathEdges = [];
+        for (const el of search.path) {
+            if (el.isEdge()) pathEdges.push(el);
+        }
+        return {
+            validPath,
+            pathEdges,
+            path: search.path,
+            distance: search.distance,
+        };
+    } else {
+        return {
+            validPath: false,
+            distance: Infinity,
+        };
     }
 }
 
