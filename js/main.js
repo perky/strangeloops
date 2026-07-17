@@ -545,7 +545,7 @@ function generateUserdataProxy(userdata, id) {
 }
 
 function findNodeByIdOrTitle(nodeIdOrTitle) {
-    const foundNodesById = cy.nodes(`#${nodeIdOrTitle}`);
+    const foundNodesById = cy.nodes(`[id = "${nodeIdOrTitle}"]`);
     if (foundNodesById.length > 0) {
         return foundNodesById[0];
     }
