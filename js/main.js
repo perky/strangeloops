@@ -1632,7 +1632,7 @@ bindSidePanelElement("side-panel-watcher-id", null, {
 });
 bindSidePanelElement("side-panel-watcher-title", "input", {
     updateElement(element, node) {
-        element.innerText = node.data().name;
+        element.value = node.data().name;
     },
     setData(node, element, updaters) {
         node.data('name', element.value);
