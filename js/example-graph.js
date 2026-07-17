@@ -2,10 +2,10 @@ window.exampleGraphJson = JSON.stringify([
   {
     "type": "viewport",
     "version": 3,
-    "zoom": 0.5962556224278396,
+    "zoom": 0.63013338174883,
     "position": {
-      "x": 2153.780852262121,
-      "y": 937.2908494855087
+      "x": 1988.788858327547,
+      "y": 1112.5206951494574
     },
     "title": "HOLLOW KNIGHT PROGRESSION",
     "description": "Example graph. Shows how the player can progress between areas in the video game Hollow Knight. You could do a similar thing for your own game to identify soft-locks, or to get a rough indication of how much time it takes to get to places."
@@ -32,12 +32,12 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "group",
-    "id": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
+    "id": "2d355c8c-2dd8-43a7-ab12-23a3e8aa47d9",
     "position": {
-      "x": -2629.158286142925,
-      "y": -1153.9792951831128
+      "x": -2557.074622766866,
+      "y": -1096.0239675533844
     },
-    "label": "Play the autorun node to continuously simulate a player moving around"
+    "label": "Press 'Start Autorun' to continuously simulate a player moving around"
   },
   {
     "type": "node",
@@ -70,7 +70,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "264dac8a-34c2-4819-a323-68b93377c277",
     "name": "FORGOTTEN CROSSROADS",
     "description": "",
-    "activateScript": "g.foundMapmaker = true\ng.geo += 5",
+    "activateScript": "g.foundMapmaker = true\ng.geo += 10",
     "autoProgress": false,
     "position": {
       "x": -1254.7048428720393,
@@ -117,7 +117,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
     "name": "CRYSTAL PEAK",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -671.0721259057926,
       "y": -1046.072556456263
@@ -151,7 +151,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "6ab3f65d-9417-40c0-bd11-c3b5cc1a7640",
     "name": "GREENPATH WEST",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -2132.595678319081,
       "y": -794.0845020239326
@@ -223,7 +223,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "d2320c83-91e5-4ed7-a12e-3a3c45978336",
     "name": "QUEEN'S GARDEN",
     "description": "",
-    "activateScript": "g.visitedQueensGarden = true\ng.geo += 5",
+    "activateScript": "g.visitedQueensGarden = true\ng.geo += 10",
     "position": {
       "x": -2544.3309514327398,
       "y": -332.03820679905306
@@ -234,7 +234,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "d28532c2-bcea-4c37-95e1-aad99e10f05d",
     "name": "FOG CANYON",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -1892.3111720870374,
       "y": -297.6895642688567
@@ -245,7 +245,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
     "name": "DEEPNEST",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -2152.463162689051,
       "y": 228.1327078306314
@@ -278,7 +278,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
     "name": "FUNGAL WASTES",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -1590.7876336852987,
       "y": -309.0870793971942
@@ -289,7 +289,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "66514992-ea86-4bee-be26-68084159f75f",
     "name": "CITY OF TEARS",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 15",
     "position": {
       "x": -1154.7330898746436,
       "y": -230.3228197366263
@@ -332,8 +332,8 @@ window.exampleGraphJson = JSON.stringify([
     "type": "node",
     "id": "e97708eb-fe88-44c9-b96d-0585325ff931",
     "name": "ISMA'S GROVE",
-    "description": "Gain Isma's Tear",
-    "activateScript": "g.ismasTear = true",
+    "description": "Gain Isma's Tears",
+    "activateScript": "g.ismasTears = true",
     "position": {
       "x": -820.5490992823704,
       "y": -95.96756942041918
@@ -345,42 +345,10 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
     "name": "KINGDOM'S EDGE",
     "description": "",
-    "activateScript": "g.geo += 5",
+    "activateScript": "g.geo += 10",
     "position": {
       "x": -418.96182147581266,
       "y": -312.26498881712206
-    }
-  },
-  {
-    "type": "route",
-    "id": "bca02eb9-1527-4fa7-a5fa-6b7526364e62",
-    "position": {
-      "x": -497.9770648338358,
-      "y": 231.86875296363732
-    }
-  },
-  {
-    "type": "route",
-    "id": "0249c350-4e17-4552-9a20-e9d65c631338",
-    "position": {
-      "x": -539.2213484062642,
-      "y": 198.26229968239977
-    }
-  },
-  {
-    "type": "route",
-    "id": "e778265b-2751-4d3f-9814-db3e1e3ddec1",
-    "position": {
-      "x": -1065.4674938340588,
-      "y": 204.55909377292576
-    }
-  },
-  {
-    "type": "route",
-    "id": "23fd68f0-d375-4e9f-a03c-720d23ea6440",
-    "position": {
-      "x": -373.7046337426022,
-      "y": -194.31529253137188
     }
   },
   {
@@ -401,7 +369,7 @@ window.exampleGraphJson = JSON.stringify([
     "parentId": "633e58c7-a610-48dc-9dcb-4d8cdbb09380",
     "name": "COLOSSEUM OF FOOLS",
     "description": "Has Pale Ore",
-    "activateScript": "g.paleOre += 1",
+    "activateScript": "if (!self.done) g.paleOre += 1\nself.done = true",
     "position": {
       "x": -248.82688646213722,
       "y": -518.8084233244529
@@ -446,7 +414,7 @@ window.exampleGraphJson = JSON.stringify([
     "id": "6781fbc2-ed9a-4444-8804-c17323fe768b",
     "name": "HOWLING CLIFFS",
     "description": "",
-    "activateScript": "",
+    "activateScript": "g.geo += 5",
     "position": {
       "x": -2133.485175182152,
       "y": -1370.6327533466215
@@ -642,30 +610,6 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "node",
-    "id": "5a549813-5fb4-4501-ad61-3c1ff2cc7acc",
-    "parentId": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
-    "name": "AUTORUN",
-    "description": "",
-    "activateScript": "node.run(\"a5ba2a9a-6e4b-453b-8fd0-27c6c1b804c8\", \"main\")\nthread.autorun(\"main\", 0.2)\nlog(\"autorunning\")",
-    "position": {
-      "x": -2729.707664588148,
-      "y": -1155.1236480452028
-    }
-  },
-  {
-    "type": "node",
-    "id": "19cde869-d23c-4f34-aa9c-053e59064ff7",
-    "parentId": "d20b3b8d-6bc4-47fe-803e-53632332e4b6",
-    "name": "STOP",
-    "description": "",
-    "activateScript": "thread.stop(\"main\")\nthread.stop(threadId)",
-    "position": {
-      "x": -2528.6089076977023,
-      "y": -1152.8349423210227
-    }
-  },
-  {
-    "type": "node",
     "id": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
     "name": "FUNGAL CORE",
     "description": "",
@@ -695,9 +639,88 @@ window.exampleGraphJson = JSON.stringify([
     "color": "red",
     "activateScript": "self.done = true",
     "position": {
-      "x": -2290.3748512743273,
-      "y": -1512.8491768956803
+      "x": -2340.583525567296,
+      "y": -1531.6774297555435
     }
+  },
+  {
+    "type": "route",
+    "id": "bca02eb9-1527-4fa7-a5fa-6b7526364e62",
+    "position": {
+      "x": -497.9770648338358,
+      "y": 231.86875296363732
+    }
+  },
+  {
+    "type": "route",
+    "id": "0249c350-4e17-4552-9a20-e9d65c631338",
+    "position": {
+      "x": -539.2213484062642,
+      "y": 198.26229968239977
+    }
+  },
+  {
+    "type": "route",
+    "id": "e778265b-2751-4d3f-9814-db3e1e3ddec1",
+    "position": {
+      "x": -1065.4674938340588,
+      "y": 204.55909377292576
+    }
+  },
+  {
+    "type": "route",
+    "id": "23fd68f0-d375-4e9f-a03c-720d23ea6440",
+    "position": {
+      "x": -373.7046337426022,
+      "y": -194.31529253137188
+    }
+  },
+  {
+    "type": "edge",
+    "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
+    "targetId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
+    "weight": 0,
+    "weightScript": "g.monarchWings",
+    "label": "Requires Monarch Wings"
+  },
+  {
+    "type": "edge",
+    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "targetId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
+    "weight": 1,
+    "weightScript": "!to.done"
+  },
+  {
+    "type": "edge",
+    "sourceId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
+    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "055db1d8-8946-496f-b388-707be3965ce1",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "055db1d8-8946-496f-b388-707be3965ce1",
+    "weight": 0,
+    "weightScript": "!to.done && g.crystalHeart",
+    "label": "Requires Crystal Heart"
+  },
+  {
+    "type": "edge",
+    "sourceId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "weight": 1
+  },
+  {
+    "type": "edge",
+    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
+    "targetId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
+    "weight": 1
   },
   {
     "type": "edge",
@@ -800,7 +823,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
     "targetId": "82961aca-38e1-428a-92fd-222472172ff0",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "!g.lumaflyLantern && g.geo >= 1800"
   },
   {
@@ -870,14 +893,14 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
     "targetId": "58e13fd5-dccf-4f0f-b36a-9f328af38b1e",
-    "weight": 0,
+    "weight": 1,
     "weightScript": "!to.done"
   },
   {
     "type": "edge",
     "sourceId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
     "targetId": "6d2f7af2-588e-44dd-9343-bed0c7b672bb",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.mothwingCloak && g.mantisClaw",
     "label": "Requires Mothwing & Mantis Claw"
   },
@@ -890,7 +913,8 @@ window.exampleGraphJson = JSON.stringify([
   {
     "type": "edge",
     "sourceId": "6d2f7af2-588e-44dd-9343-bed0c7b672bb",
-    "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6"
+    "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
+    "weight": 1
   },
   {
     "type": "edge",
@@ -928,7 +952,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "42423985-3a9a-47b1-8566-f40d83ac825d",
     "targetId": "eaa0b284-c156-4c86-85dd-9b8eef4fdec9",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.simpleKey == 0 && g.geo >= 950"
   },
   {
@@ -1004,7 +1028,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
     "targetId": "9c8a79ff-2c86-444c-a1e4-45f70fc1cfa6",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.desolateDive && g.mothwingCloak",
     "label": "Requires Desolate Dive & Mothwing Cloak"
   },
@@ -1145,7 +1169,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
     "targetId": "d2320c83-91e5-4ed7-a12e-3a3c45978336",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.mothwingCloak",
     "label": "Requies Mothwing Cloak"
   },
@@ -1203,7 +1227,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "d2320c83-91e5-4ed7-a12e-3a3c45978336",
     "targetId": "ecdf64ec-5824-4ba5-ae62-b3247080cd6a",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.visitedQueensGarden && g.visitedStoneSanctuary"
   },
   {
@@ -1217,7 +1241,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "3b0b7f78-c9db-4866-9d84-e41e30fd9afb",
     "targetId": "ecdf64ec-5824-4ba5-ae62-b3247080cd6a",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.visitedQueensGarden && g.visitedStoneSanctuary && g.mothwingCloak && g.mantisClaw",
     "label": "Requires Mothwing Cloak & Mantis Claw"
   },
@@ -1252,7 +1276,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "264dac8a-34c2-4819-a323-68b93377c277",
     "targetId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.mothwingCloak",
     "label": "Requires Mothwing Cloak"
   },
@@ -1260,7 +1284,7 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
     "targetId": "66514992-ea86-4bee-be26-68084159f75f",
-    "weight": 1,
+    "weight": 0,
     "weightScript": "g.mantisClaw && g.cityCrest",
     "label": "Requires Matis Claw & City Crest "
   },
@@ -1452,13 +1476,14 @@ window.exampleGraphJson = JSON.stringify([
     "type": "edge",
     "sourceId": "66514992-ea86-4bee-be26-68084159f75f",
     "targetId": "9d5c4469-a259-4daf-94a8-b1061cb53ab8",
-    "weight": 0,
+    "weight": 1,
     "weightScript": "!to.done"
   },
   {
     "type": "edge",
     "sourceId": "9d5c4469-a259-4daf-94a8-b1061cb53ab8",
-    "targetId": "66514992-ea86-4bee-be26-68084159f75f"
+    "targetId": "66514992-ea86-4bee-be26-68084159f75f",
+    "weight": 1
   },
   {
     "type": "edge",
@@ -1470,56 +1495,52 @@ window.exampleGraphJson = JSON.stringify([
   },
   {
     "type": "edge",
-    "sourceId": "5a549813-5fb4-4501-ad61-3c1ff2cc7acc",
-    "targetId": "19cde869-d23c-4f34-aa9c-053e59064ff7",
+    "sourceId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
+    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
     "weight": 1
   },
   {
-    "type": "edge",
-    "sourceId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
+    "type": "button",
+    "id": "8f0d3cab-85f3-48f5-ba88-0450ef0841ff",
+    "parentId": "2d355c8c-2dd8-43a7-ab12-23a3e8aa47d9",
+    "label": "Add 500 Geo",
+    "activateScript": "g.geo += 500",
+    "position": {
+      "x": -2342.623561341765,
+      "y": -1000.041763398802
+    }
   },
   {
-    "type": "edge",
-    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "targetId": "ca41aa9d-b0fd-4e80-bb6b-498acbdab098"
+    "type": "button",
+    "id": "96f7751b-0f4b-41b7-bfde-5df92f0ab908",
+    "parentId": "2d355c8c-2dd8-43a7-ab12-23a3e8aa47d9",
+    "label": "Stop Autorun",
+    "activateScript": "thread.stop(\"autorun\")",
+    "position": {
+      "x": -2556.402362386223,
+      "y": -1000.0417633988022
+    }
   },
   {
-    "type": "edge",
-    "sourceId": "c067f8ae-ab70-4c72-bf54-6b864bb3adaf",
-    "targetId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
-    "weight": 0,
-    "weightScript": "g.monarchWings",
-    "label": "Requires Monarch Wings"
+    "type": "button",
+    "id": "04a75f05-91df-484a-b289-b575544dae74",
+    "parentId": "2d355c8c-2dd8-43a7-ab12-23a3e8aa47d9",
+    "label": "Start Autorun",
+    "activateScript": "node.run(\"a5ba2a9a-6e4b-453b-8fd0-27c6c1b804c8\", \"autorun\")\nthread.autorun(\"autorun\", 0.3)\nlog(\"autorunning\")",
+    "position": {
+      "x": -2771.5256841919672,
+      "y": -1000.0417633988022
+    }
   },
   {
-    "type": "edge",
-    "sourceId": "5dff37ac-0ca6-496d-aaa9-b8a17fa4c79c",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
-  },
-  {
-    "type": "edge",
-    "sourceId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15",
-    "targetId": "055db1d8-8946-496f-b388-707be3965ce1",
-    "weight": 0,
-    "weightScript": "!to.done && g.crystalHeart",
-    "label": "Requires Crystal Heart"
-  },
-  {
-    "type": "edge",
-    "sourceId": "055db1d8-8946-496f-b388-707be3965ce1",
-    "targetId": "11a5aae6-fbc0-4737-9c07-0ef7959c8e15"
-  },
-  {
-    "type": "edge",
-    "sourceId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
-    "targetId": "6781fbc2-ed9a-4444-8804-c17323fe768b"
-  },
-  {
-    "type": "edge",
-    "sourceId": "6781fbc2-ed9a-4444-8804-c17323fe768b",
-    "targetId": "0dd4c3c6-f060-4a13-9580-d675727f3a30",
-    "weight": 0,
-    "weightScript": "!to.done"
+    "type": "watcher",
+    "id": "4ad292ce-e4b3-41c8-8eb1-d793fab14661",
+    "parentId": "2d355c8c-2dd8-43a7-ab12-23a3e8aa47d9",
+    "name": "Stats",
+    "watchScript": "self.geo = g.geo\nself.cityOfTearsVisits = node.get(\"CITY OF TEARS\")._visits",
+    "position": {
+      "x": -2556.402362386223,
+      "y": -1156.0061717079666
+    }
   }
 ]);

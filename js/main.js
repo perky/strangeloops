@@ -53,10 +53,10 @@ var cy = cytoscape({
             },
         },
         {
-            "selector": "edge[?weightScript]",
+            "selector": "edge[?traversable]",
             "style": {
-                "line-color": "#7c3aed",
-                "mid-target-arrow-color": "#7c3aed",
+                "line-color": "#059669",
+                "mid-target-arrow-color": "#059669",
             },
         },
         {
@@ -242,6 +242,7 @@ function activateNode(node, runInstanceId) {
     // so we can consider those route nodes essentially collapsed into a
     // single edge.
     let connectedRouteNodes = [];
+    let isRoutedNode = {};
     cy.edges(`[source="${node.id()}"]`).forEach((edge) => {
         const target = edge.target();
         const nodeType = target.data().type;
@@ -270,6 +271,7 @@ function activateNode(node, runInstanceId) {
         });
         for (const stateNode of foundStateNodes) {
             currentRunInstance.nextNodes.push(stateNode);
+            isRoutedNode[stateNode.id()] = true;
         }
     }
     for (const nextNode of currentRunInstance.nextNodes) {
@@ -369,16 +371,46 @@ function activateNode(node, runInstanceId) {
         }
     }
 
+    // Mark all edges as non-traversable.
+    cy.edges().forEach((edge) => edge.data('traversable', false));
+
+    // Mark edges directing away from the current node and with a weight > 0 as traversable.
     for (const nextNode of currentRunInstance.nextNodes) {
         const edgesTo = currentRunInstance.runningNode.edgesTo(nextNode);
-        let foundNonZeroEdge = false;
-        for (const edgeTo of edgesTo) {
-            if ((edgeTo.data().weight ?? 1) > 0) {
-                foundNonZeroEdge = true;
-                break;
+        if (edgesTo.length === 0) {
+            // This must be a node along route nodes.
+            // Calculate the path so we can look for any zero weight edges along it.
+            const search = cy.elements().aStar({
+                root: currentRunInstance.runningNode,
+                goal: nextNode,
+                directed: true,
+                weight: (e) => {
+                    const weight = e.data().weight ?? 1;
+                    if (weight <= 0) return Infinity;
+                    return weight;
+                }
+            });
+            const hasValidPath = (search.distance !== Infinity);
+            nextNode.data("hasValidEdgeTo", hasValidPath);
+            nextNode.data("canActivate", hasValidPath);
+            if (hasValidPath) {
+                for (const el of search.path) {
+                    if (el.isEdge()) {
+                        el.data('traversable', true);
+                    }
+                }
             }
+        } else {
+            let foundNonZeroEdge = false;
+            for (const edgeTo of edgesTo) {
+                if ((edgeTo.data().weight ?? 1) > 0) {
+                    foundNonZeroEdge = true;
+                    edgeTo.data('traversable', true);
+                }
+            }
+            nextNode.data("hasValidEdgeTo", foundNonZeroEdge);
+            nextNode.data("canActivate", foundNonZeroEdge);
         }
-        nextNode.data("hasValidEdgeTo", foundNonZeroEdge);
     }
 
     for (const dirtyNode of transientState.dirtyNodes) {
@@ -386,7 +418,7 @@ function activateNode(node, runInstanceId) {
     }
 
     if (globalEnvDirty) {
-        document.getElementById("side-panel-data-output").innerHTML = renderDataToHtml(userGlobalEnv);
+        showGlobalUserDataToUser();
     }
 
     // Auto progress to the next node if auto-progress is enabled.
@@ -395,6 +427,45 @@ function activateNode(node, runInstanceId) {
             progressToNextNode(node);
         }, userSettings.autoProgressSecondsInterval * 1000);
     }
+}
+
+function activateButton(node) {
+    const userEnv = node.data().userEnv ?? {}
+    const buttonUserdataProxy = generateUserdataProxy(userEnv, node.id());
+    buttonUserdataProxy._visits += 1;
+    if (node.data().activateScript) {
+        try {
+            runUserScript(
+                node.data().activateScript, 
+                {id: null}, 
+                userGlobalEnvProxy, 
+                buttonUserdataProxy
+            );
+        } catch (error) {
+            showErrorToUser(`Failed to run button script: ${error}`);
+        }
+    }
+    node.data('userEnv', userEnv);
+    showGlobalUserDataToUser();
+}
+
+function showGlobalUserDataToUser() {
+    cy.nodes('[type = "watcher"][?watchScript]').forEach((node) => {
+        const userEnv = node.data().userEnv ?? {};
+        const watcherUserEnvProxy = generateUserdataProxy(userEnv, node.id());
+        try {
+            runUserScript(
+                node.data().watchScript, 
+                {id: null}, 
+                userGlobalEnvProxy, 
+                watcherUserEnvProxy
+            );
+        } catch (error) {
+            showErrorToUser(`Failed to run watcher script: ${error}`);
+        }
+        node.data('userEnv', userEnv);
+    });
+    document.getElementById("side-panel-data-output").innerHTML = renderDataToHtml(userGlobalEnv);
 }
 
 /// Selects a random item in items. The random selection uses
@@ -609,6 +680,27 @@ function runUserEdgeScript(script, runInstance, globalEnv, edgeEnv, fromNodeEnv,
     return result;
 }
 
+/// Create a new untitled state node.
+function createStateNode(name, position) {
+    const {element, domUpdaters} = createStateNodeElement(name);
+    const node = cy.add({
+        group: 'nodes',
+        data: { 
+            dom: element, 
+            type: "state", 
+            name: name,
+            description: "",
+            running: false,
+            canActivate: (transientState.runInstances.length === 0),
+            activateScript: '',
+            userEnv: {},
+        },
+        position: position,
+    });
+    bindStateNodeActions(node, domUpdaters);
+    return node;
+}
+
 /// Create the DOM element for a state node.
 function createStateNodeElement(name) {
     const element = document.createElement("article");
@@ -657,27 +749,6 @@ function createStateNodeElement(name) {
     return {element, domUpdaters: {
         updateTitle, updateDescription, updateData, updateAutoProgress, updateScriptIcon,
     }};
-}
-
-/// Create a new untitled state node.
-function createStateNode(name, position) {
-    const {element, domUpdaters} = createStateNodeElement(name);
-    const node = cy.add({
-        group: 'nodes',
-        data: { 
-            dom: element, 
-            type: "state", 
-            name: name,
-            description: "",
-            running: false,
-            canActivate: (transientState.runInstances.length === 0),
-            activateScript: '',
-            userEnv: {},
-        },
-        position: position,
-    });
-    bindStateNodeActions(node, domUpdaters);
-    return node;
 }
 
 function bindStateNodeActions(node, domUpdaters) {
@@ -737,6 +808,147 @@ function restoreStateNode(storedNode) {
     return node;
 }
 
+/// Create a new button node, which is a button the user can press at any time to activate
+/// a script outside of a runInstance context.
+function createButtonNode(position) {
+    const {element, domUpdaters} = createButtonNodeElement();
+    const node = cy.add({
+        group: 'nodes',
+        data: { 
+            dom: element, 
+            type: "button", 
+            label: "button",
+            activateScript: '',
+            userEnv: {},
+        },
+        position: position,
+    });
+    for (const name in domUpdaters) {
+        domUpdaters[name](node);
+    }
+    bindButtonNodeActions(node, domUpdaters);
+    return node;
+}
+
+/// Create the DOM element for a button node.
+function createButtonNodeElement() {
+    const element = document.createElement("article");
+    const buttonEl = document.createElement("button");
+    element.appendChild(buttonEl);
+    element.className = `button-node`;
+    buttonEl.setAttribute('data-action', 'activateScript');
+    buttonEl.innerText = "button";
+    const dataEl = document.createElement("span");
+    dataEl.className = 'node-data';
+    element.append(dataEl);
+    const updateButtonLabel = (node) => buttonEl.innerText = node.data('label');
+    const updateData = (node) => {
+        dataEl.innerHTML = renderDataToHtml(node.data().userEnv);
+    };
+    return {element, domUpdaters: {updateButtonLabel, updateData}};
+}
+
+function bindButtonNodeActions(node, domUpdaters) {
+    node.scratch('_domUpdaters', domUpdaters);
+    const button = node.data().dom.querySelector("[data-action='activateScript']");
+    button.addEventListener('click', (e) => {
+        activateButton(node);
+    });
+    node.on("data", (e) => {
+        domUpdaters.updateButtonLabel(node);
+        domUpdaters.updateData(node);
+    });
+}
+
+/// Create a new button node and restore its state from saved data.
+function restoreButtonNode(storedNode) {
+    const {element, domUpdaters} = createButtonNodeElement();
+    const node = cy.add({
+        group: 'nodes',
+        data: { 
+            id: storedNode.id,
+            parent: storedNode.parentId,
+            dom: element, 
+            type: "button", 
+            label: storedNode.label ?? "button",
+            activateScript: storedNode.activateScript,
+        },
+        position: storedNode.position,
+    });
+    for (const name in domUpdaters) {
+        domUpdaters[name](node);
+    }
+    bindButtonNodeActions(node, domUpdaters);
+    return node;
+}
+
+/// Create a new watcher node, which runs it's script everytime another script runs.
+function createWatcherNode(position) {
+    const {element, domUpdaters} = createWatcherNodeElement();
+    const node = cy.add({
+        group: 'nodes',
+        data: { 
+            dom: element, 
+            type: "watcher", 
+            name: "Watcher",
+            watchScript: '',
+            userEnv: {},
+        },
+        position: position,
+    });
+    for (const name in domUpdaters) {
+        domUpdaters[name](node);
+    }
+    bindWatcherNodeActions(node, domUpdaters);
+    return node;
+}
+
+/// Create the DOM element for a button node.
+function createWatcherNodeElement() {
+    const element = document.createElement("article");
+    element.className = 'watcher-node';
+    const titleEl = document.createElement("h1");
+    element.appendChild(titleEl);
+    const dataEl = document.createElement("span");
+    dataEl.className = 'node-data';
+    element.append(dataEl);
+    const updateTitle = (node) => titleEl.innerText = node.data().name;
+    const updateData = (node) => {
+        dataEl.innerHTML = renderDataToHtml(node.data().userEnv);
+    };
+    return {element, domUpdaters: {updateData, updateTitle}};
+}
+
+function bindWatcherNodeActions(node, domUpdaters) {
+    node.scratch('_domUpdaters', domUpdaters);
+    node.on("data", (e) => {
+        domUpdaters.updateData(node);
+        domUpdaters.updateTitle(node);
+    });
+}
+
+/// Create a new button node and restore its state from saved data.
+function restoreWatcherNode(storedNode) {
+    const {element, domUpdaters} = createWatcherNodeElement();
+    const node = cy.add({
+        group: 'nodes',
+        data: { 
+            id: storedNode.id,
+            parent: storedNode.parentId,
+            dom: element, 
+            type: "watcher", 
+            name: storedNode.name,
+            watchScript: storedNode.watchScript,
+        },
+        position: storedNode.position,
+    });
+    for (const name in domUpdaters) {
+        domUpdaters[name](node);
+    }
+    bindWatcherNodeActions(node, domUpdaters);
+    return node;
+}
+
 function resetAllUserVariables() {
     for (let name in userGlobalEnvProxy) {
         delete userGlobalEnvProxy[name];
@@ -744,15 +956,16 @@ function resetAllUserVariables() {
     document.getElementById("side-panel-data-output").innerHTML = "";
     cy.nodes().forEach((node) => {
         if (node.data().type === 'state') {
-            for (let name in node.data().userEnv) {
-                delete node.data().userEnv[name];
-            }
+            node.data("userEnv", {});
             node.data("running", false);
             node.data("canActivate", true);
             node.data("hasValidEdgeTo", true);
             node.scratch('_domUpdaters').updateData(node);
+        } else if (node.data().type === 'button' || node.data().type === 'watcher') {
+            node.data("userEnv", {});
         }
     });
+    cy.edges().forEach((edge) => edge.data('traversable', false));
     transientState.runInstances = [];
 }
 
@@ -762,10 +975,11 @@ function resetAllUserVariablesButKeepRunning() {
     }
     document.getElementById("side-panel-data-output").innerHTML = "";
     cy.nodes('[type = "state"]').forEach((node) => {
-        for (let name in node.data().userEnv) {
-            delete node.data().userEnv[name];
-        }
+        node.data("userEnv", {});
         node.scratch('_domUpdaters').updateData(node);
+    });
+    cy.nodes('[type = "button"], [type = "watcher"]').forEach((node) => {
+        node.data("userEnv", {});
     });
 }
 
@@ -794,52 +1008,76 @@ function saveGraphToJson()  {
         description: graphState.description,
     });
     // Save groups first.
-    cy.nodes().forEach((node) => {
+    cy.nodes('[type = "group"]').forEach((node) => {
         const data = node.data();
-        if (data.type === "group") {
-            state.push({
-                type: 'group',
-                id: node.id(),
-                position: node.position(),
-                color: node.data().color,
-                label: node.data().label,
-            });
-        }
+        state.push({
+            type: 'group',
+            id: node.id(),
+            position: node.position(),
+            color: node.data().color,
+            label: node.data().label,
+        });
     });
     // Then save state and route nodes.
-    cy.nodes().forEach((node) => {
+    cy.nodes('[type = "state"]').forEach((node) => {
         const data = node.data();
-        if (data.type === "state") {
-            state.push({
-                type: 'node',
-                id: node.id(),
-                parentId: data.parent,
-                name: data.name,
-                description: data.description,
-                color: data.color,
-                activateScript: data.activateScript,
-                autoProgress: data.autoProgress,
-                position: node.position(),
-            });
-        } else if (data.type === "route") {
-            state.push({
-                type: 'route',
-                id: node.id(),
-                parentId: data.parent,
-                position: node.position(),
-            });
-        }
+        state.push({
+            type: 'node',
+            id: node.id(),
+            parentId: data.parent,
+            name: data.name,
+            description: data.description,
+            color: data.color,
+            activateScript: data.activateScript,
+            autoProgress: data.autoProgress,
+            position: node.position(),
+        });
+    });
+    // Then save route nodes.
+    cy.nodes('[type = "route"]').forEach((node) => {
+        const data = node.data();
+        state.push({
+            type: 'route',
+            id: node.id(),
+            parentId: data.parent,
+            position: node.position(),
+        });
     });
     // Then save edges.
     cy.edges().forEach((edge) => {
+        const data = edge.data();
         state.push({
             type: 'edge',
             sourceId: edge.source().id(),
             targetId: edge.target().id(),
-            weight: edge.data().weight,
-            weightScript: edge.data().weightScript,
-            activateScript: edge.data().activateScript,
-            label: edge.data().label,
+            weight: data.weight,
+            weightScript: data.weightScript,
+            activateScript: data.activateScript,
+            label: data.label,
+        });
+    });
+    // Then save buttons.
+    cy.nodes('[type = "button"]').forEach((node) => {
+        const data = node.data();
+        state.push({
+            type: 'button',
+            id: node.id(),
+            parentId: data.parent,
+            label: data.label,
+            activateScript: data.activateScript,
+            position: node.position(),
+        });
+    });
+    // Then save watchers.
+    cy.nodes('[type = "watcher"]').forEach((node) => {
+        const data = node.data();
+        state.push({
+            type: 'watcher',
+            id: node.id(),
+            parentId: data.parent,
+            name: data.name,
+            watchScript: data.watchScript,
+            position: node.position(),
         });
     });
     return JSON.stringify(state, null, 2);
@@ -848,8 +1086,7 @@ function saveGraphToJson()  {
 function loadGraphFromJson(jsonText) {
     const state = JSON.parse(jsonText);
     resetAllUserVariables();
-    cy.remove(cy.edges());
-    cy.remove(cy.nodes());
+    cy.remove(cy.elements());
     for (let item of state) {
         if (item.type === 'viewport') {
             cy.viewport({
@@ -876,6 +1113,7 @@ function loadGraphFromJson(jsonText) {
                 group: 'nodes',
                 data: {
                     id: item.id,
+                    parent: item.parentId,
                     type: 'route',
                 },
                 position: item.position,
@@ -892,6 +1130,10 @@ function loadGraphFromJson(jsonText) {
                     label: item.label,
                 }
             });
+        } else if (item.type === 'button') {
+            restoreButtonNode(item);
+        } else if (item.type === 'watcher') {
+            restoreWatcherNode(item);
         }
     }
     for (const bind of sidePanelBinds) {
@@ -911,7 +1153,7 @@ function groupSelection() {
         cy.remove(group);
     });
 
-    var selectedIds = cy.elements('node[type = "state"]:selected');
+    var selectedIds = cy.elements('node:selected');
     if (selectedIds.length === 1 && selectedIds[0].parent().length > 0) {
         const parent = selectedIds[0].parent();
         selectedIds[0].move({parent: null});
@@ -1072,6 +1314,10 @@ function setSidePanelData(target) {
         showSidePanelVariant("side-panel-edge-details");
     } else if (target.data().type === 'group') {
         showSidePanelVariant("side-panel-group-details");
+    } else if (target.data().type === "button") {
+        showSidePanelVariant("side-panel-button-details");
+    } else if (target.data().type === "watcher") {
+        showSidePanelVariant("side-panel-watcher-details");
     }
     for (const bind of sidePanelBinds) {
         const element = document.getElementById(bind.id);
@@ -1111,6 +1357,11 @@ function splitEdge(edge, position) {
     // remove old edge
     cy.remove(edge);
 }
+
+// Cache pointer position over graph for other events to query.
+cy.on('mousemove', (e) => {
+    transientState.pointerPosition = e.position;
+});
 
 // Create a new node when the user double-clicks on the graph.
 // Or if the double click on an edge, split that edge into two.
@@ -1172,8 +1423,9 @@ cy.on('tapunselect', (e) => {
 });
 
 function bindSidePanelElement(id, listenerEvent, functions) {
+    const element = document.getElementById(id);
     if (listenerEvent) {
-        document.getElementById(id).addEventListener(listenerEvent, (e) => {
+        element.addEventListener(listenerEvent, (e) => {
             if (transientState.sidePanelTarget) {
                 const domUpdaters = transientState.sidePanelTarget.scratch('_domUpdaters');
                 functions.setData(transientState.sidePanelTarget, e.target, domUpdaters);
@@ -1184,7 +1436,7 @@ function bindSidePanelElement(id, listenerEvent, functions) {
         });
     }
     sidePanelBinds.push({
-        id, functions
+        id, functions, element
     });
 }
 
@@ -1351,6 +1603,50 @@ bindSidePanelElement("side-panel-group-color", "change", {
     }
 });
 
+bindSidePanelElement("side-panel-button-id", null, {
+    updateElement(element, node) {
+        element.innerText = node.id();
+    }
+});
+bindSidePanelElement("side-panel-button-label", "input", {
+    updateElement(element, node) {
+        element.value = node.data().label ?? "button";
+    },
+    setData(node, element, updaters) {
+        node.data('label', element.value);
+    }
+});
+bindSidePanelElement("side-panel-button-script", "change", {
+    updateElement(element, node) {
+        element.value = node.data().activateScript ?? "";
+    },
+    setData(node, element, updaters) {
+        node.data('activateScript', element.value);
+    }
+});
+
+bindSidePanelElement("side-panel-watcher-id", null, {
+    updateElement(element, node) {
+        element.innerText = node.id();
+    }
+});
+bindSidePanelElement("side-panel-watcher-title", "input", {
+    updateElement(element, node) {
+        element.innerText = node.data().name;
+    },
+    setData(node, element, updaters) {
+        node.data('name', element.value);
+    }
+});
+bindSidePanelElement("side-panel-watcher-script", "change", {
+    updateElement(element, node) {
+        element.value = node.data().watchScript ?? "";
+    },
+    setData(node, element, updaters) {
+        node.data('watchScript', element.value);
+    }
+});
+
 bindSidePanelNumberSetting("side-panel-global-autoprogress-seconds", "change", "autoProgressSecondsInterval");
 bindSidePanelNumberSetting("side-panel-global-autosave-seconds", "change", "autosaveSecondsInterval");
 bindSidePanelCheckboxSetting("side-panel-global-run-all-weightscripts", "change", "runAllWeightScriptAfterActivation");
@@ -1405,6 +1701,10 @@ document.addEventListener("keydown", (e) => {
             transientState.focusPressCount += 1;
             cy.fit(runInstance.runningNode, 550);
         }
+    } else if (e.key === 'b') {
+        createButtonNode(transientState.pointerPosition);
+    } else if (e.key === 'w') {
+        createWatcherNode(transientState.pointerPosition);
     }
 });
 
@@ -1443,12 +1743,12 @@ onButtonClick("reset-variables", (e) => {
     resetAllUserVariables();
 });
 
-onButtonClick("save", (e) => {
+onButtonClick("save-to-local", (e) => {
     const jsonText = saveGraphToJson();
     localStorage.setItem("workspace-graph", jsonText);
 });
 
-onButtonClick("load", (e) => {
+onButtonClick("load-from-local", (e) => {
     const jsonText = localStorage.getItem("workspace-graph");
     loadGraphFromJson(jsonText);
 });
@@ -1469,13 +1769,62 @@ onButtonClick("import-clipboard", (e) => {
     });
 });
 
+const filePickerOptions = {
+    types: [{
+        description: "Strange Loops (json)",
+        accept: {
+        'application/json': ['.json'],
+    }}]
+};
+
+onButtonClick("open-from-system", async (e) => {
+    const [saveFileHandle] = await window.showOpenFilePicker(filePickerOptions);
+    const saveFile = await saveFileHandle.getFile();
+    const saveJsonText = await saveFile.text();
+    if (isValidJsonString(saveJsonText)) { 
+        loadGraphFromJson(saveJsonText);
+        showInfoToUser(`Loaded file ${saveFileHandle.name}`);
+    } else {
+        showErrorToUser(`Failed to load ${saveFileHandle.name}`);
+    }
+});
+
+onButtonClick("save-to-system", async (e) => {
+    const newSaveHandle = await window.showSaveFilePicker(filePickerOptions);
+    try {
+        const writableStream = await newSaveHandle.createWritable();
+        const saveJsonText = saveGraphToJson();
+        await writableStream.write(saveJsonText);
+        await writableStream.close();
+        showInfoToUser(`Saved to ${newSaveHandle.name}`);
+    } catch (_) {
+        showErrorToUser(`Failed to save to ${newSaveHandle.name}`);
+    }
+});
+
 onButtonClick("clear-graph", (e) => {
     cy.remove(cy.elements());
     transientState = {
         sidePanelTarget: null,
         runInstances: [],
     };
+    graphState.title = "Untitled";
+    graphState.description = "";
+    const titleBind = sidePanelBinds.findLast((e) => e.id === "side-panel-graph-title");
+    titleBind.functions.updateElementNoTarget(titleBind.element);
+    const descriptionBind = sidePanelBinds.findLast((e) => e.id === "side-panel-graph-description");
+    descriptionBind.functions.updateElementNoTarget(descriptionBind.element);
 });
+
+
+function isValidJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
 
 function showInfoToUser(infoText) {
     const infoEl = document.getElementById("side-panel-info-message");

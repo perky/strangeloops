@@ -30,6 +30,8 @@
                         <li><b>A:</b> toggle auto-progression for selected node.</li>
                         <li><b>F:</b> focus viewport on activated node.</li>
                         <li><b>Del:</b> delete selection.</li>
+                        <li><b>B:</b> create a Button.</li>
+                        <li><b>W:</b> create a Watcher.</li>
                     </ul>
                     <p><i>Created by <a href="https://locogame.co.uk">Luke Perkin</a></i></p>
                 </div>
@@ -43,7 +45,11 @@
                     <dt>Description</dt>
                     <textarea id="side-panel-graph-description" type="text" class="tall description"></textarea>
                 </div>
-                <div><i>Select a node or edge</i></div>
+                <div>
+                    <i>Left click to select a node or edge.</i>
+                    <br/><i>Double click graph to create a new node.</i>
+                    <br/><i>Hold ALT then click and drag to create edges.</i>
+                </div>
             </dl>
             <dl id="side-panel-node-details" class="side-panel-variant">
                 <div>
@@ -187,6 +193,58 @@
                     <input id="side-panel-group-color" type="color"></input>
                 </div>
             </dl>
+            <dl id="side-panel-button-details" class="side-panel-variant">
+                <div>
+                    <dt>ID</dt>
+                    <dd id="side-panel-button-id" class="small"></dd>
+                </div>
+                <div>
+                    <dt>Label</dt>
+                    <input id="side-panel-button-label" type="text"></input>
+                </div>
+                <div>
+                    <dt>Script</dt>
+                    <textarea id="side-panel-button-script" class="script" type="text" spellcheck="false"></textarea>
+                    <div class="tooltip-parent">
+                        <span><u><i>How do button scripts work?</i></u></span>
+                        <div class="tooltip">
+                            <p>
+                                A Button script simply activates when you click the button.
+                                It works pretty much like a script on a state node, except there is no
+                                <code>threadId</code>. <code>self._visits</code> will instead be how many times the button was clicked.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </dl>
+            <dl id="side-panel-watcher-details" class="side-panel-variant">
+                <div>
+                    <dt>ID</dt>
+                    <dd id="side-panel-watcher-id" class="small"></dd>
+                </div>
+                <div>
+                    <dt>Label</dt>
+                    <input id="side-panel-watcher-title" type="text"></input>
+                </div>
+                <div>
+                    <dt>Script</dt>
+                    <textarea id="side-panel-watcher-script" class="script" type="text" spellcheck="false"></textarea>
+                    <div class="tooltip-parent">
+                        <span><u><i>How do watcher scripts work?</i></u></span>
+                        <div class="tooltip">
+                            <p>
+                                A Watcher script activates whenever any state, edge, or button script activates. 
+                                This is useful for highligting some important information in your game state.
+                                The most typical use is to just copy a global variable to a local one:
+                            </p>
+                                <code>self.money = g.money</code>
+                            <p>
+                                Whenever g.money changes, the Watcher node will display the latest money value.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </dl>
             
             
             <dl id="side-panel-global">
@@ -203,12 +261,19 @@
                     <hr class="solid">
                     <dt>Actions</dt>
                     <div id="side-panel-buttons">
+                        <div class="tooltip-parent">
+                            <button>File...</button>
+                            <div class="tooltip actions">
+                                <button data-action="clear-graph">New Graph</button>
+                                <button data-action="open-from-system">Load from File</button>
+                                <button data-action="save-to-system">Save to File</button>
+                                <button data-action="load-from-local">Load from Browser</button>
+                                <button data-action="save-to-local">Save to Browser</button>
+                                <button data-action="export-clipboard">Export to Clipboard</button>
+                                <button data-action="import-clipboard">Import from Clipboard</button>
+                            </div>
+                        </div>
                         <button data-action="reset-variables">Stop All Threads</button>
-                        <button data-action="save">Save</button>
-                        <button data-action="load">Load</button>
-                        <button data-action="export-clipboard">Export to clipboard</button>
-                        <button data-action="import-clipboard">Import from clipboard</button>
-                        <button data-action="clear-graph">Clear Graph</button>
                     </div>
                 </div>
                 <div>
