@@ -231,7 +231,6 @@ function activateNode(node, runInstanceId) {
 
     let globalEnvDirty = false;
     transientState.dirtyNodes = [node, lastRunningNode];
-    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
 
     // Run the travel script on the edge that is being travelled across.
     const edgesTo = lastRunningNode.edgesTo(node);
@@ -308,6 +307,8 @@ function activateNode(node, runInstanceId) {
     // A proxy is used so the user doesn't have to declare
     // any variables, it just automatically sets any undefined
     // variable to 0.
+    if (!node.data().userEnv) node.data().userEnv = {};
+    const runningNodeUserdataProxy = generateUserdataProxy(node.data().userEnv, node.id());
     runningNodeUserdataProxy._visits += 1;
     if (node.data().activateScript) {
         try {
