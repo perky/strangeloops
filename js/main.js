@@ -1802,6 +1802,10 @@ onButtonClick("save-to-system", async (e) => {
     }
 });
 
+onButtonClick("open-example", (e) => {
+    loadGraphFromJson(window.exampleGraphJson);
+});
+
 onButtonClick("clear-graph", (e) => {
     cy.remove(cy.elements());
     transientState = {
