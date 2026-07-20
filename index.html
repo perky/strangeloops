@@ -91,14 +91,15 @@
                                 <li><code>min(a, b)</code> picks the lowest of a or b.</li>
                                 <li><code>max(a, b)</code> picks the highest of a or b.</li>
                                 <li><code>log(message)</code> displays the message in the side bar for 5s.</li>
-                                <li><code>node.run(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>untitled
+                                <li><code>node.run(idOrTitle, threadId)</code> activates a state node, threadId can be an abitrary name you create to start a new thread, or an existing thread id.</li>
                                 <li><code>node.set(idOrTitle, variableName, value)</code> sets a variable on another state node.</li>
                                 <li><code>node.get(idOrTitle)</code> gets another state node's data.</li>
                                 <li><code>node.filter(filterFunction)</code> (advanced) returns an array of all state nodes that pass the filterFunction.</li>
                                 <li><code>thread.run(threadId)</code> advances a 'thread', as if you had pressed the 🎲 button.</li>
                                 <li><code>thread.stop(threadId)</code> kills a 'thread'.</li>
-                                <li><code>thread.changeId(threadId, newId)</code> changes a 'thread' id to a new arbitrary string of your choice.</li>
                                 <li><code>thread.autorun(threadId, secondsInterval)</code> like <code>.run()</code> but will keep on running that thread continously.</li>
+                                <li><code>thread.push(idOrTitle, threadId)</code> runs the target node but remembers which node it left from.</li>
+                                <li><code>thread.pop(threadId)</code> returns the thread to the node it was at during the last <code>push()</code>.</li>
                             </ul>
                             <p><i>Note that threads aren't like actual OS threads, they're just a term I use to indicate one player's movement across the graph.</i></p>
                         </div>
