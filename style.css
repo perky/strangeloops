@@ -173,6 +173,11 @@ body {
     box-shadow: 0 0 8px 8px #EAC10E;
 }
 
+.dom-node.in-thread-stack {
+    /* background-color: orange; */
+    box-shadow: 0 0 8px 8px #a440f0;
+}
+
 .dom-node.hide-activate button[data-action = "activate"] {
     visibility: collapse;
 }
@@ -297,14 +302,6 @@ button {
 button.large {
     height: 72px;
     border-width: 2px;
-}
-
-.has-invalid-edge-to button[data-action='activate'] {
-    background-color: #b91c1c;
-}
-
-.has-valid-edge-to button[data-action='activate'] {
-    background-color: #2563eb;
 }
 
 button:hover {
