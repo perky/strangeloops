@@ -75,6 +75,15 @@ var cy = cytoscape({
             }
         },
         {
+            "selector": "edge[?threadStack]",
+            "style": {
+                "line-color": "#8b22cc",
+                "line-style": "dashed",
+                "line-dash-pattern": [6,3],
+                'mid-target-arrow-shape': 'none',
+            },
+        },
+        {
             selector: 'node[type = "group"]',
             style: {
                 'text-valign': 'bottom',
@@ -189,6 +198,7 @@ function activateNode(node, runInstanceId) {
             n.data("running", false);
             n.data("canActivate", false);
         });
+        if (!runInstanceId) runInstanceId = "main";
     }
 
     // stop running the last node.
@@ -215,6 +225,7 @@ function activateNode(node, runInstanceId) {
             id: runInstanceId ?? guid(),
             runningNode: node,
             nextNodes: [],
+            stack: [],
         };
         transientState.runInstances.push(currentRunInstance);
     }
@@ -253,54 +264,11 @@ function activateNode(node, runInstanceId) {
         }
     }
 
-    // Route nodes automatically progress to next.
+    // Route nodes automatically progress to the next node.
     const nodeType = node.data().type;
     if (nodeType === "route") {
         setTimeout(() => {progressToNextNode(node);}, 100);
         return;
-    }
-
-    // Show the 'activate' button on all state nodes connected
-    // in outgoing connection to this node being activates.
-    // This also performs a depth first search along any route nodes
-    // so we can consider those route nodes essentially collapsed into a
-    // single edge.
-    let connectedRouteNodes = [];
-    let isRoutedNode = {};
-    cy.edges(`[source="${node.id()}"]`).forEach((edge) => {
-        const target = edge.target();
-        const nodeType = target.data().type;
-        if (nodeType === "state") {
-            currentRunInstance.nextNodes.push(target);
-        } else if (nodeType === "route") {
-            connectedRouteNodes.push(target);
-        }
-    });
-    for (let routeNode of connectedRouteNodes) {
-        let foundStateNodes = [];
-        let stateNodeDepth = 9999;
-        // Do a depth-first-search
-        cy.elements().dfs({
-            root: routeNode,
-            visit: (currentNode, edge, previousNode, index, depth) => {
-                if (currentNode.data().type === "state") {
-                    if (depth > stateNodeDepth) {
-                        return true;
-                    } else {
-                        foundStateNodes.push(currentNode);
-                        stateNodeDepth = depth;
-                    }
-                }
-            },
-            directed: true,
-        });
-        for (const stateNode of foundStateNodes) {
-            currentRunInstance.nextNodes.push(stateNode);
-            isRoutedNode[stateNode.id()] = true;
-        }
-    }
-    for (const nextNode of currentRunInstance.nextNodes) {
-        nextNode.data("canActivate", true);
     }
 
     // Run the user script on this activates node.
@@ -327,6 +295,66 @@ function activateNode(node, runInstanceId) {
         }
     }
 
+    updateOutgoingEdges(currentRunInstance);
+
+    for (const dirtyNode of transientState.dirtyNodes) {
+        dirtyNode.scratch('_domUpdaters').updateData(dirtyNode);
+    }
+
+    if (globalEnvDirty) {
+        showGlobalUserDataToUser();
+    }
+
+    // Auto progress to the next node if auto-progress is enabled.
+    if (node.data().autoProgress === true) {
+        setTimeout(() => {
+            progressToNextNode(node);
+        }, userSettings.autoProgressSecondsInterval * 1000);
+    }
+}
+
+function updateOutgoingEdges(runInstance) {
+    const node = runInstance.runningNode;
+    // Show the 'activate' button on all state nodes connected
+    // in outgoing connection to this node being activates.
+    // This also performs a depth first search along any route nodes
+    // so we can consider those route nodes essentially collapsed into a
+    // single edge.
+    runInstance.nextNodes = [];
+    let potentialNextNodes = [];
+    let connectedRouteNodes = [];
+    cy.edges(`[source="${node.id()}"]`).forEach((edge) => {
+        const target = edge.target();
+        const nodeType = target.data().type;
+        if (nodeType === "state") {
+            potentialNextNodes.push(target);
+        } else if (nodeType === "route") {
+            connectedRouteNodes.push(target);
+        }
+    });
+    for (let routeNode of connectedRouteNodes) {
+        let foundStateNodes = [];
+        let stateNodeDepth = 9999;
+        // Do a depth-first-search
+        cy.elements().dfs({
+            root: routeNode,
+            visit: (currentNode, edge, previousNode, index, depth) => {
+                if (currentNode.data().type === "state") {
+                    if (depth > stateNodeDepth) {
+                        return true;
+                    } else {
+                        foundStateNodes.push(currentNode);
+                        stateNodeDepth = depth;
+                    }
+                }
+            },
+            directed: true,
+        });
+        for (const stateNode of foundStateNodes) {
+            potentialNextNodes.push(stateNode);
+        }
+    }
+
     // Update the outgoing edge weights if any of those have a weight script.
     let edgesWithWeightScript = [];
     if (userSettings.runAllWeightScriptAfterActivation) {
@@ -345,7 +373,7 @@ function activateNode(node, runInstanceId) {
             try {
                 weight = runUserEdgeScript(
                     edgeData.weightScript, 
-                    currentRunInstance, 
+                    runInstance, 
                     userGlobalEnvProxy, 
                     edgeUserdataProxy, 
                     fromNodeUserdataProxy,
@@ -366,7 +394,6 @@ function activateNode(node, runInstanceId) {
                     showErrorToUser(`Weight Script returned invalid value: ${weight}`);
                 }
             }
-            globalEnvDirty = true;
         }
     }
 
@@ -374,15 +401,15 @@ function activateNode(node, runInstanceId) {
     cy.edges().forEach((edge) => edge.data('traversable', false));
 
     // Mark edges directing away from the current node and with a weight > 0 as traversable.
-    for (const nextNode of currentRunInstance.nextNodes) {
-        const edgesTo = currentRunInstance.runningNode.edgesTo(nextNode);
+    for (const nextNode of potentialNextNodes) {
+        const edgesTo = node.edgesTo(nextNode);
         if (edgesTo.length === 0) {
             // This must be a node along route nodes.
             // Calculate the path so we can look for any zero weight edges along it.
-            const search = searchForPathBetweenNodes(currentRunInstance.runningNode, nextNode);
-            nextNode.data("hasValidEdgeTo", search.validPath);
+            const search = searchForPathBetweenNodes(node, nextNode);
             nextNode.data("canActivate", search.validPath);
             if (search.validPath) {
+                runInstance.nextNodes.push(nextNode);
                 for (const edge of search.pathEdges) {
                     edge.data('traversable', true);
                 }
@@ -395,24 +422,11 @@ function activateNode(node, runInstanceId) {
                     edgeTo.data('traversable', true);
                 }
             }
-            nextNode.data("hasValidEdgeTo", foundNonZeroEdge);
+            if (foundNonZeroEdge) {
+                runInstance.nextNodes.push(nextNode);
+            }
             nextNode.data("canActivate", foundNonZeroEdge);
         }
-    }
-
-    for (const dirtyNode of transientState.dirtyNodes) {
-        dirtyNode.scratch('_domUpdaters').updateData(dirtyNode);
-    }
-
-    if (globalEnvDirty) {
-        showGlobalUserDataToUser();
-    }
-
-    // Auto progress to the next node if auto-progress is enabled.
-    if (node.data().autoProgress === true) {
-        setTimeout(() => {
-            progressToNextNode(node);
-        }, userSettings.autoProgressSecondsInterval * 1000);
     }
 }
 
@@ -610,14 +624,6 @@ const userspaceThreadFunctions = {
             showErrorToUser(`Failed to run thread. There is no thread named ${runInstanceId}.`)
         }
     },
-    changeId(runInstanceId, newRunInstanceId) {
-        const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
-        if (otherRunInstance) {
-            otherRunInstance.id = runInstanceId ?? guid();
-        } else {
-            showErrorToUser(`Failed to change thread id. There is no thread with id ${runInstanceId}`);
-        }
-    },
     stop(runInstanceId) {
         const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
         transientState.runInstances = transientState.runInstances.filter((n) => {
@@ -634,16 +640,60 @@ const userspaceThreadFunctions = {
             const otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
             if (otherRunInstance) {
                 progressToNextNode(otherRunInstance.runningNode);
-                setTimeout(_run, intervalSeconds * 1000);
+                setTimeout(_run, Math.max(intervalSeconds * 1000, 250));
             }
         };
         const _otherRunInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
         if (_otherRunInstance) {
-            setTimeout(_run, intervalSeconds * 1000);
+            setTimeout(_run, Math.max(intervalSeconds * 1000, 250));
         } else {
             showErrorToUser(`Failed to autorun thread: ${runInstanceId}`);
         }
     },
+    push(nodeIdOrTitle, runInstanceId) {
+        const foundNode = findNodeByIdOrTitle(nodeIdOrTitle);
+        const runInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
+        if (runInstance && foundNode) {
+            const sourceNode = runInstance.runningNode;
+            sourceNode.data("inThreadStack", true);
+            const stackEdge = cy.add({
+                group: 'edges',
+                data: {
+                    source: sourceNode.id(),
+                    target: foundNode.id(),
+                    threadStack: true,
+                }
+            });
+            stackEdge.unselectify();
+            runInstance.stack.push({
+                node: sourceNode,
+                edge: stackEdge,
+            });
+            activateNode(foundNode, runInstanceId);
+        } else {
+            showErrorToUser(`Failed to push thread ${runInstanceId} with node ${nodeIdOrTitle}`);
+        }
+    },
+    pop(runInstanceId) {
+        const runInstance = transientState.runInstances.findLast((n) => n.id === runInstanceId);
+        if (runInstance) {
+            setTimeout(() => {
+                runInstance.runningNode.data("running", false);
+            }, 230);
+            const nodeEdge = runInstance.stack.pop();
+            if (nodeEdge) {
+                setTimeout(() => {
+                    cy.remove(nodeEdge.edge);
+                    nodeEdge.node.data("inThreadStack", false);
+                    nodeEdge.node.data("running", true);
+                    runInstance.runningNode = nodeEdge.node;
+                    updateOutgoingEdges(runInstance);
+                }, 240);
+            }
+        } else {
+            showErrorToUser(`Failed to pop thread ${runInstanceId}`);
+        }
+    }
 };
 
 /// Userland functions related to state nodes.
@@ -810,8 +860,7 @@ function bindStateNodeActions(node, domUpdaters) {
             data.dom.classList.toggle("running", data.running);
             data.dom.classList.toggle("hide-progress", (!data.running || (data.autoProgress === true)));
             data.dom.classList.toggle("hide-activate", !data.canActivate);
-            data.dom.classList.toggle("has-valid-edge-to", data.hasValidEdgeTo);
-            data.dom.classList.toggle("has-invalid-edge-to", !data.hasValidEdgeTo);
+            data.dom.classList.toggle("in-thread-stack", data.inThreadStack === true);
 
             data.dom.classList.toggle("back-white", data.color === "white");
             data.dom.classList.toggle("back-blue", data.color === "blue");
@@ -1003,13 +1052,14 @@ function resetAllUserVariables() {
             node.data("userEnv", {});
             node.data("running", false);
             node.data("canActivate", true);
-            node.data("hasValidEdgeTo", true);
+            node.data("inThreadStack", false);
             node.scratch('_domUpdaters').updateData(node);
         } else if (node.data().type === 'button' || node.data().type === 'watcher') {
             node.data("userEnv", {});
         }
     });
     cy.edges().forEach((edge) => edge.data('traversable', false));
+    cy.remove(cy.edges('[?threadStack]'));
     transientState.runInstances = [];
 }
 
@@ -1088,7 +1138,7 @@ function saveGraphToJson()  {
         });
     });
     // Then save edges.
-    cy.edges().forEach((edge) => {
+    cy.edges('[!threadStack]').forEach((edge) => {
         const data = edge.data();
         state.push({
             type: 'edge',
@@ -1418,7 +1468,7 @@ cy.on('mousemove', (e) => {
 // Or if the double click on an edge, split that edge into two.
 cy.on('dblclick', (e) => {
     // Split an edge if its double clicked.
-    if (e.target.group && (e.target.group() === "edges")) {
+    if (e.target.group && (e.target.group() === "edges") && !e.target.data('threadStack')) {
         splitEdge(e.target, e.position);
         return;
     }
